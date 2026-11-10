@@ -42,3 +42,8 @@ reports `core_unavailable` and the Phase 0 panel says so.
 
 `BuildConfig.TOOL_CATALOG` is the only difference. Debug builds use the `.debug` application id
 suffix so they can coexist with a release install.
+
+## CI
+
+The `android` workflow runs on pushes that touch `android/`, `core/`, `.cargo/` or `scripts/`,
+and can be started manually with `gh workflow run android.yml -R KingKaonix/aiaio --ref main`.
