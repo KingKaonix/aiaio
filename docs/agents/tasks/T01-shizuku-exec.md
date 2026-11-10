@@ -55,8 +55,6 @@ Package installs (T02), PTY (T04), proxy (T05).
 
 ## Implementation notes (Phase 0 probe)
 
-Steps 1–4 are implemented and compile in CI; steps 5–6 still need a device run.
-
 - `IRuntimeService` (AIDL) exposes `uid()`, `exec(argv, cwd)`, `mkdirs(path)` and
   `writeFile(path, data, mode)`. New methods are appended, never inserted: AIDL transaction
   ids follow declaration order. `RuntimeManager`'s Shizuku user-service `version` must be
@@ -69,6 +67,17 @@ Steps 1–4 are implemented and compile in CI; steps 5–6 still need a device r
 - The **More** tab has a "Run T01 probe" button that binds the user service and reports
   `uid`, `mkdirs`, `write` and `exec` results as `code=… output=…` lines. Expected output
   starts with `probe-uid=2000`.
+- "Start 30-minute soak" writes `probe/soak.sh` (heartbeat every 60 s with uid and
+  `dumpsys power` wakefulness) and starts it detached, so the binder call returns at once;
+  "Read soak log" reports the tick count and the first/last line.
+
+## Cleanup rule (step 6)
+
+`/data/local/tmp/aiaio/` lives outside the app sandbox and **survives uninstall** (observed:
+after uninstalling the probe build the directory was still there, and the next install reused
+it). Nothing else is left behind by the probe: no services, no scheduled jobs, no system
+modification. A release build must therefore ship an explicit "remove runtime" action, and
+must not create anything outside this directory.
 
 Evidence to attach when run on device: screenshot of the probe card, `id -u` output, device
 model/Android version, Shizuku version, and the 30-minute screen-off repeat.

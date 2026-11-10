@@ -63,7 +63,8 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-        }        release {
+        }
+        release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
