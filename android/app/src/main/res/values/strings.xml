@@ -15,4 +15,7 @@
     <string name="request_shizuku_permission">Request Shizuku permission</string>
     <string name="t01_run">Run T01 probe</string>
     <string name="t01_result">T01 probe result</string>
+    <string name="soak_start">Start 30-minute soak</string>
+    <string name="soak_read">Read soak log</string>
+    <string name="soak_result">Soak</string>
 </resources>

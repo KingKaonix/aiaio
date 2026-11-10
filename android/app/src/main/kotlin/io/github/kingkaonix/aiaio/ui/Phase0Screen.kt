@@ -55,6 +55,8 @@ fun Phase0Screen() {
     var permissionResult by remember { mutableStateOf<String?>(null) }
     var probeResult by remember { mutableStateOf<String?>(null) }
     var probeRunning by remember { mutableStateOf(false) }
+    var soakResult by remember { mutableStateOf<String?>(null) }
+    var soakRunning by remember { mutableStateOf(false) }
 
     DisposableEffect(coreClient) {
         coreClient.bind()
@@ -152,6 +154,41 @@ fun Phase0Screen() {
 
         probeResult?.let { StatusCard(title = stringResource(R.string.t01_result), value = it) }
 
+        Button(
+            enabled = !soakRunning,
+            onClick = {
+                soakRunning = true
+                soakResult = "running…"
+                scope.launch {
+                    soakResult = try {
+                        startSoak(runtimeManager)
+                    } finally {
+                        soakRunning = false
+                    }
+                }
+            },
+        ) {
+            Text(stringResource(R.string.soak_start))
+        }
+
+        Button(
+            enabled = !soakRunning,
+            onClick = {
+                soakRunning = true
+                scope.launch {
+                    soakResult = try {
+                        readSoakLog(runtimeManager)
+                    } finally {
+                        soakRunning = false
+                    }
+                }
+            },
+        ) {
+            Text(stringResource(R.string.soak_read))
+        }
+
+        soakResult?.let { StatusCard(title = stringResource(R.string.soak_result), value = it) }
+
         Text(
             text = "Next gate: T01 (execute a program in /data/local/tmp/aiaio as shell UID).",
             style = MaterialTheme.typography.bodySmall,
@@ -166,6 +203,9 @@ fun Phase0Screen() {
 
 private val PROBE_DIR = "${RuntimePaths.ROOT}/probe"
 private val PROBE_SCRIPT = "$PROBE_DIR/probe.sh"
+private val SOAK_SCRIPT = "$PROBE_DIR/soak.sh"
+private val SOAK_LOG = "$PROBE_DIR/soak.log"
+private const val SOAK_MINUTES = 30
 
 private val PROBE_BODY = """
     #!/system/bin/sh
@@ -175,14 +215,28 @@ private val PROBE_BODY = """
 """.trimIndent()
 
 /**
- * T01: write a program into /data/local/tmp/aiaio as shell, chmod 0700, execute it, and
- * report each step. Runs entirely over the IRuntimeService AIDL boundary.
+ * Heartbeat program for the screen-off soak. `$` is written as `${'$'}` because a Kotlin
+ * raw string would otherwise treat the shell variables as string templates.
  */
-private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
+private val SOAK_BODY = """
+    #!/system/bin/sh
+    log=/data/local/tmp/aiaio/probe/soak.log
+    echo "start uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S)" >> "${'$'}log"
+    i=0
+    while [ "${'$'}i" -lt $SOAK_MINUTES ]; do
+      sleep 60
+      i=${'$'}((i + 1))
+      wake=${'$'}(dumpsys power | sed -n 's/.*mWakefulness=//p' | head -n 1)
+      echo "tick=${'$'}i uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S) wake=${'$'}wake" >> "${'$'}log"
+    done
+    echo "done uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S)" >> "${'$'}log"
+""".trimIndent()
+
+/** Binds the user service and waits for it; returns a message when it is not usable. */
+private suspend fun awaitService(manager: RuntimeManager): String? {
     val bind = manager.bind()
     if (bind.isFailure) {
-        appendLine("bind failed: ${bind.exceptionOrNull()?.message ?: "unknown"}")
-        return@buildString
+        return "bind failed: ${bind.exceptionOrNull()?.message ?: "unknown"}"
     }
 
     val connected = withTimeoutOrNull(5_000) {
@@ -191,8 +245,16 @@ private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
         }
         true
     } ?: false
-    if (!connected) {
-        appendLine("user service did not connect (Shizuku running and permission granted?)")
+    return if (connected) null else "user service did not connect (Shizuku running and permission granted?)"
+}
+
+/**
+ * T01: write a program into /data/local/tmp/aiaio as shell, chmod 0700, execute it, and
+ * report each step. Runs entirely over the IRuntimeService AIDL boundary.
+ */
+private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
+    awaitService(manager)?.let {
+        appendLine(it)
         return@buildString
     }
 
@@ -203,7 +265,61 @@ private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
             manager.writeFile(PROBE_SCRIPT, PROBE_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
         ),
     )
-    appendLine("exec: " + describe(manager.exec(listOf(PROBE_SCRIPT))))
+    appendLine("exec: " + describe(manager.exec(listOf(PROBE_SCRIPT), PROBE_DIR)))
+}
+
+/**
+ * T01 soak: start [SOAK_SCRIPT] detached so the binder call returns immediately, then let
+ * the device sit idle (screen off) and read [SOAK_LOG] afterwards.
+ */
+private suspend fun startSoak(manager: RuntimeManager): String = buildString {
+    awaitService(manager)?.let {
+        appendLine(it)
+        return@buildString
+    }
+
+    appendLine("mkdirs: " + describe(manager.mkdirs(PROBE_DIR)))
+    appendLine(
+        "write: " + describe(
+            manager.writeFile(SOAK_SCRIPT, SOAK_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
+        ),
+    )
+    // setsid + redirects: the service must not hold the pipe for 30 minutes. Fallback to a
+    // plain background job when setsid is missing (the child still has no shared fds).
+    appendLine(
+        "start: " + describe(
+            manager.exec(
+                listOf(
+                    "/system/bin/sh",
+                    "-c",
+                    "( setsid $SOAK_SCRIPT || $SOAK_SCRIPT ) >/dev/null 2>&1 </dev/null &",
+                ),
+            ),
+        ),
+    )
+}
+
+/** Reads the soak heartbeat and reports how far it got. */
+private suspend fun readSoakLog(manager: RuntimeManager): String = buildString {
+    awaitService(manager)?.let {
+        appendLine(it)
+        return@buildString
+    }
+
+    val result = manager.exec(listOf("/system/bin/cat", SOAK_LOG), PROBE_DIR)
+    val output = runCatching { JSONObject(result).optString("output") }.getOrNull()
+    if (output.isNullOrBlank()) {
+        appendLine("no log yet: " + describe(result))
+        return@buildString
+    }
+
+    val lines = output.lines().filter { it.isNotBlank() }
+    appendLine("ticks=${lines.count { it.startsWith("tick=") }} / $SOAK_MINUTES")
+    appendLine("first: ${lines.first()}")
+    appendLine("last: ${lines.last()}")
+    if (lines.any { it.startsWith("done ") }) {
+        appendLine("soak complete")
+    }
 }
 
 /** Turns the AIDL JSON envelope into one readable line. */
