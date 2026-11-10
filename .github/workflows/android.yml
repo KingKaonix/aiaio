@@ -108,14 +108,27 @@ jobs:
             -o ../android/app/src/main/jniLibs \
             build --release -p aiaio-ffi
 
-      - name: Cache debug keystore
-        # Each runner starts without ~/.android, so AGP would generate a new debug key every
-        # run and sideloaded updates would fail with "package conflicts with an existing
-        # package". A stable cached key keeps debug builds updatable across runs.
+      - name: Restore debug keystore
+        # A stable debug key keeps sideloaded debug builds update-compatible across runs,
+        # so the key is cached. AGP's implicit ~/.android path depends on the runner
+        # image's environment, so CI creates it at an explicit path and passes
+        # AIAIO_DEBUG_KEYSTORE to Gradle.
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: android-debug-keystore-v1
+          path: ${{ runner.temp }}/aiaio-debug.keystore
+          key: android-debug-keystore-v2
+
+      - name: Create debug keystore when missing
+        env:
+          KEYSTORE: ${{ runner.temp }}/aiaio-debug.keystore
+        run: |
+          if [ ! -f "$KEYSTORE" ]; then
+            keytool -genkeypair -noprompt -keystore "$KEYSTORE" \
+              -storetype PKCS12 -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          keytool -list -v -keystore "$KEYSTORE" -storepass android | grep -E 'SHA256:'
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -132,9 +145,13 @@ jobs:
             --stacktrace
 
       - name: Assemble githubDebug APK
+        env:
+          AIAIO_DEBUG_KEYSTORE: ${{ runner.temp }}/aiaio-debug.keystore
         run: gradle -p android :app:assembleGithubDebug --stacktrace
 
       - name: Assemble libreDebug APK
+        env:
+          AIAIO_DEBUG_KEYSTORE: ${{ runner.temp }}/aiaio-debug.keystore
         run: gradle -p android :app:assembleLibreDebug --stacktrace
 
       - name: Lint
@@ -151,6 +168,10 @@ jobs:
         run: |
           sha256sum android/app/build/outputs/apk/github/debug/*.apk \
                     android/app/build/outputs/apk/libre/debug/*.apk
+          # The debug key must be identical across runs; print its fingerprint to prove it.
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs \
+            android/app/build/outputs/apk/github/debug/app-github-debug.apk |
+            grep -E 'Signer #1 certificate (DN|SHA-256)'
 
       - name: Upload APKs
         uses: actions/upload-artifact@v4

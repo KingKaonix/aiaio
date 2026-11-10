@@ -47,12 +47,23 @@ android {
         }
     }
 
+    // CI supplies a stable debug key through AIAIO_DEBUG_KEYSTORE. AGP's implicit
+    // ~/.android/debug.keystore location depends on the runner image's environment, which
+    // made every CI run sign with a different key and broke in-place updates.
+    System.getenv("AIAIO_DEBUG_KEYSTORE")?.let { keystore ->
+        signingConfigs.getByName("debug").apply {
+            storeFile = file(keystore)
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-        }
-        release {
+        }        release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(

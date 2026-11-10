@@ -34,8 +34,15 @@ fails, the self-contained runtime is impossible and the project pivots to Compan
 
 ## Evidence
 
-- `adb shell` transcript, logcat lines tagged `aiaio-runtime`, device model + Android version,
-  Shizuku version (13.x), and a screen recording of the status screen.
+Device: Motorola moto g play - 2024 (`fogona_g`, Android 14 / SDK 34, kernel 5.15.185, SELinux
+enforcing), Shizuku-Next manager 14.0.27-next, app `io.github.kingkaonix.aiaio.debug`.
+
+- `docs/agents/evidence/T01-device-shizuku-next.jpg` — device + Shizuku facts screen.
+- `docs/agents/evidence/T01-probe-result.jpg` — probe card: `uid=2000`, `mkdirs` →
+  `/data/local/tmp/aiaio/probe`, `write` mode 700, `exec` → `probe-uid=2000`,
+  `probe-user=shell`.
+- Second run after leaving the app (cold binder rebind, 11 s) reproduced the same output.
+- No `adb`, no root, no Termux: everything went through `IRuntimeService` (uid 2000).
 
 ## Risks
 
