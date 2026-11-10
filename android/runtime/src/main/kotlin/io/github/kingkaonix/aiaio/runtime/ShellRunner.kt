@@ -9,7 +9,7 @@ import org.json.JSONObject
  * T02/T03, before any user-controlled path reaches this code.
  */
 internal object ShellRunner {
-    fun run(argv: Array<String>, cwd: String): String {
+    fun run(argv: Array<out String>, cwd: String): String {
         if (argv.isEmpty()) {
             return error("empty argv")
         }

@@ -16,6 +16,6 @@ import android.os.Process
 class RuntimeUserService : IRuntimeService.Stub() {
     override fun uid(): Int = Process.myUid()
 
-    override fun exec(argv: Array<String>?, cwd: String?): String =
-        ShellRunner.run(argv.orEmpty(), cwd.orEmpty())
+    override fun exec(argv: Array<out String>?, cwd: String?): String =
+        ShellRunner.run(argv?.map { it.orEmpty() }?.toTypedArray() ?: emptyArray(), cwd.orEmpty())
 }
