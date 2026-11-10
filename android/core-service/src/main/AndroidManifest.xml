@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          The Rust core runs in its own process so a panic or OOM in a proxy/sync task cannot
+          take down the Compose UI. The process loads libaiaio_core.so from nativeLibraryDir.
+        -->
+        <service
+            android:name=".CoreService"
+            android:exported="false"
+            android:process=":core"
+            android:stopWithTask="false" />
+    </application>
+</manifest>

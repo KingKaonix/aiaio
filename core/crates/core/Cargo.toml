@@ -1,0 +1,17 @@
+[package]
+name = "aiaio-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Tauri-free core of aiaio: dispatch façade, ports and (later) services, db, proxy, sync"
+
+[lib]
+# The JNI library must be named `libaiaio_core.so`, so this crate keeps a distinct lib name.
+name = "aiaio_core_engine"
+
+[dependencies]
+aiaio-runtime-proto = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }

@@ -1,0 +1,25 @@
+aiaio
+=====
+
+Copyright (c) 2026 kingkaonix and aiaio contributors.
+
+This project is a fork of cc-switch:
+
+  https://github.com/farion1231/cc-switch
+  Copyright (c) 2025 Jason Young and cc-switch contributors
+  Licensed under the MIT License (see LICENSE)
+
+The upstream MIT license and copyright notice are retained in LICENSE.
+
+Trademarks
+----------
+"CC Switch" and the upstream logo are marks of the upstream project. aiaio does not claim
+affiliation with, endorsement by, or sponsorship from the upstream project or its official
+website. The aiaio name and icon are independent.
+
+Third-party software
+--------------------
+Runtime bottles (Node.js, git, ripgrep, CLI tools, etc.) are separate programs installed at
+runtime under `/data/local/tmp/aiaio/`. They are not linked into this application. Each bottle
+records its own license and redistribution status in `tools/bottles/manifest.schema.json`
+metadata; see `docs/adr/0005-distribution-and-bottles.md`.

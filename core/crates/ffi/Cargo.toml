@@ -1,0 +1,18 @@
+[package]
+name = "aiaio-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "JNI façade: libaiaio_core.so loaded by the Android :core process"
+
+[lib]
+# This must stay `aiaio_core` so System.loadLibrary("aiaio_core") resolves it.
+name = "aiaio_core"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+aiaio-core = { workspace = true }
+aiaio-runtime-proto = { workspace = true }
+jni = { workspace = true }
+serde_json = { workspace = true }

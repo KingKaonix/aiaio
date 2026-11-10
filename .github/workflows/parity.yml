@@ -1,0 +1,44 @@
+name: parity
+
+on:
+  schedule:
+    # Weekly, Monday 04:17 UTC. Upstream moves often; this keeps drift visible.
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "core/**"
+      - "android/sync/**"
+      - "scripts/check-upstream-parity.sh"
+      - ".github/workflows/parity.yml"
+
+concurrency:
+  group: parity-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_TOOLCHAIN: "1.95"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  parity:
+    name: Upstream compatibility surface
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # A shallow clone is enough for the file/constant checks, but fetch a little extra
+          # history so the reported commit is meaningful.
+          fetch-depth: 50
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "core -> target"
+
+      - name: Check upstream sync surface + core tests
+        run: scripts/check-upstream-parity.sh

@@ -29,3 +29,19 @@ copilot-api
 .history
 CODEBUDDY.md
 mainWindow.js
+# aiaio Android / Rust
+
+/android/.gradle/
+/android/local.properties
+/android/**/build/
+/android/build/
+/android/app/src/main/jniLibs/
+/core/target/
+/core/**/target/
+*.keystore
+*.jks
+!debug.keystore
+/docs/agents/.local/
+
+# aiaio: keep the agent contract tracked (upstream ignores AGENTS.md)
+!AGENTS.md

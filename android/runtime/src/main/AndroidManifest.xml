@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+          Shizuku needs this provider to hand its binder to the app. The authority is suffixed
+          with the applicationId so debug and release builds never collide.
+        -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
+
+        <!--
+          The runtime user service is NOT declared here. Shizuku instantiates
+          io.github.kingkaonix.aiaio.runtime.RuntimeUserService itself from the APK, in a
+          shell-UID process it owns. See RuntimeUserService.kt and ADR-0002.
+        -->
+    </application>
+</manifest>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">aiaio</string>
+
+    <string name="tab_providers">Providers</string>
+    <string name="tab_mcp">MCP</string>
+    <string name="tab_skills">Skills</string>
+    <string name="tab_sessions">Sessions</string>
+    <string name="tab_more">More</string>
+
+    <string name="phase0_title">Phase 0 — proofs</string>
+    <string name="phase0_body">Scaffold only. Features land after the Shizuku exec proof (T01) passes on a device.</string>
+    <string name="core_state">Core service</string>
+    <string name="shizuku_state">Shizuku</string>
+    <string name="request_shizuku_permission">Request Shizuku permission</string>
+</resources>

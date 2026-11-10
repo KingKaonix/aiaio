@@ -1,0 +1,33 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/runtime-proto",
+    "crates/core",
+    "crates/ffi",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.85"
+
+[workspace.dependencies]
+aiaio-runtime-proto = { path = "crates/runtime-proto" }
+aiaio-core = { path = "crates/core" }
+
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+sha2 = "0.10"
+tracing = "0.1"
+jni = "0.21"
+
+[profile.release]
+codegen-units = 16
+lto = "thin"
+opt-level = "s"
+strip = "symbols"
+panic = "unwind"

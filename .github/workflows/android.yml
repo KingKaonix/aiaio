@@ -1,0 +1,144 @@
+name: android
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "core/**"
+      - ".cargo/**"
+      - "scripts/**"
+      - ".github/workflows/android.yml"
+  pull_request:
+    paths:
+      - "android/**"
+      - "core/**"
+      - ".cargo/**"
+      - "scripts/**"
+      - ".github/workflows/android.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  RUST_TOOLCHAIN: "1.95"
+  NDK_VERSION: "27.2.12479018"
+  CARGO_TERM_COLOR: always
+
+jobs:
+  rust:
+    name: Rust core (test + clippy + fmt)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "core -> target"
+
+      - name: cargo test
+        run: cargo test --manifest-path core/Cargo.toml --workspace
+
+      - name: cargo clippy
+        run: cargo clippy --manifest-path core/Cargo.toml --workspace --all-targets -- -D warnings
+
+      - name: cargo fmt
+        run: cargo fmt --manifest-path core/Cargo.toml --all -- --check
+
+  apk:
+    name: Debug APK (arm64-v8a + x86_64, 16 KB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install SDK packages and NDK
+        run: |
+          yes | sdkmanager --licenses > /dev/null || true
+          sdkmanager --install \
+            "platforms;android-36" \
+            "build-tools;36.0.0" \
+            "ndk;${NDK_VERSION}" \
+            "platform-tools" > /dev/null
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_TOOLCHAIN }}
+          targets: aarch64-linux-android,x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "core -> target"
+
+      - name: Install cargo-ndk
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-ndk
+
+      - name: Build Rust core for Android
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+        run: |
+          cargo ndk -t arm64-v8a -t x86_64 \
+            -o android/app/src/main/jniLibs \
+            build --release -p aiaio-ffi
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
+
+      - name: Unit tests
+        run: |
+          gradle -p android \
+            :terminal:testDebugUnitTest \
+            :sync:testDebugUnitTest \
+            :app:testGithubDebugUnitTest \
+            --stacktrace
+
+      - name: Assemble githubDebug APK
+        run: gradle -p android :app:assembleGithubDebug --stacktrace
+
+      - name: Assemble libreDebug APK
+        run: gradle -p android :app:assembleLibreDebug --stacktrace
+
+      - name: Lint
+        run: gradle -p android :app:lintGithubDebug --stacktrace
+
+      - name: Verify 16 KB page compliance
+        env:
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
+        run: |
+          scripts/check-16kb.sh \
+            android/app/build/outputs/apk/github/debug/app-github-debug.apk
+
+      - name: Record APK hashes
+        run: |
+          sha256sum android/app/build/outputs/apk/github/debug/*.apk \
+                    android/app/build/outputs/apk/libre/debug/*.apk
+
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: aiaio-debug-apks
+          if-no-files-found: error
+          path: |
+            android/app/build/outputs/apk/github/debug/*.apk
+            android/app/build/outputs/apk/libre/debug/*.apk
