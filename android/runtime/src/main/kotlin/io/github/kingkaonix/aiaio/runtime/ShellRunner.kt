@@ -5,13 +5,13 @@ import org.json.JSONObject
 
 /**
  * Minimal process runner for the shell-UID service. Phase 0 intentionally has no shell
- * interpolation: callers pass an argv array. A path allow-list and read-only root come with
- * T02/T03, before any user-controlled path reaches this code.
+ * interpolation: callers pass an argv array. The path allow-list in [RuntimePaths] governs
+ * what the service is asked to touch; a read-only runtime root comes with T02/T03.
  */
 internal object ShellRunner {
     fun run(argv: Array<out String>, cwd: String): String {
         if (argv.isEmpty()) {
-            return error("empty argv")
+            return RuntimeResult.error("empty argv")
         }
 
         return try {
@@ -30,13 +30,7 @@ internal object ShellRunner {
                 .put("output", output)
                 .toString()
         } catch (t: Throwable) {
-            error(t.message ?: t.javaClass.name)
+            RuntimeResult.error(t.message ?: t.javaClass.name)
         }
     }
-
-    private fun error(message: String): String =
-        JSONObject()
-            .put("code", -1)
-            .put("error", message)
-            .toString()
 }

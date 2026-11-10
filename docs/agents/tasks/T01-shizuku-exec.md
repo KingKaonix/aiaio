@@ -1,6 +1,6 @@
 # T01 — Shizuku exec proof
 
-**Owner:** Runtime pod · **Depends on:** T06 (installable APK) · **Status:** Not started
+**Owner:** Runtime pod · **Depends on:** T06 (installable APK) · **Status:** In progress — probe implemented, device run pending
 
 ## Goal
 
@@ -45,3 +45,23 @@ fails, the self-contained runtime is impossible and the project pivots to Compan
 ## Out of scope
 
 Package installs (T02), PTY (T04), proxy (T05).
+
+## Implementation notes (Phase 0 probe)
+
+Steps 1–4 are implemented and compile in CI; steps 5–6 still need a device run.
+
+- `IRuntimeService` (AIDL) exposes `uid()`, `exec(argv, cwd)`, `mkdirs(path)` and
+  `writeFile(path, data, mode)`. New methods are appended, never inserted: AIDL transaction
+  ids follow declaration order. `RuntimeManager`'s Shizuku user-service `version` must be
+  bumped whenever this interface changes (currently `2`).
+- Every path is confined to `/data/local/tmp/aiaio` by `RuntimePaths.resolve()` on the
+  service side (canonical path, `..` and prefix tricks rejected). `RuntimePathsTest` covers
+  the rejection cases.
+- `writeFile` applies the mode with `Files.setPosixFilePermissions`; the probe writes
+  `probe.sh` with `0700` and executes it with no shell interpolation.
+- The **More** tab has a "Run T01 probe" button that binds the user service and reports
+  `uid`, `mkdirs`, `write` and `exec` results as `code=… output=…` lines. Expected output
+  starts with `probe-uid=2000`.
+
+Evidence to attach when run on device: screenshot of the probe card, `id -u` output, device
+model/Android version, Shizuku version, and the 30-minute screen-off repeat.

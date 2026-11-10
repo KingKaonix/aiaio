@@ -8,12 +8,12 @@ Plan: `docs/PLAN.md`
 
 | ID | Task | Owner | Status |
 |---|---|---|---|
-| T01 | Shizuku exec proof | Runtime | Blocked on T06 APK (probe methods not implemented yet) |
+| T01 | Shizuku exec proof | Runtime | In progress (probe implemented; device run pending) |
 | T02 | Bottle install proof | Runtime | Not started |
 | T03 | Config round-trip proof | Core | Not started |
 | T04 | PTY proof | Terminal | Not started |
 | T05 | Proxy SSE proof | Core | Not started |
-| T06 | Build + 16 KB proof | Android | In progress (CI: Rust + parity green, APK job iterating) |
+| T06 | Build + 16 KB proof | Android | Done — run 42906877098 (both flavors, lint, 16 KB) |
 | T07 | Device baseline bench | Human | Not started |
 
 Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
@@ -54,21 +54,18 @@ Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
 
 ## Next 5 actions
 
-1. Get the `android` workflow green (`githubDebug` + `libreDebug` APKs, unit tests, lint,
-   16 KB check) and record the run id here.
-2. Download the debug APK from the CI run and install it on the dev phone; confirm the
-   `:core` AIDL ping and Shizuku status panel render (screenshot as evidence).
-3. Implement the T01 probe: add `mkdirs` / `writeFile(path, bytes, mode)` / `exec` to
-   `IRuntimeService`, write a script under `/data/local/tmp/aiaio/probe`, run it as uid 2000,
-   surface the output in the status screen.
-4. Run T01 on the phone (30-minute screen-off repeat included) and attach evidence to
-   `docs/agents/tasks/T01-shizuku-exec.md`.
+1. Build the probe commit in CI (runtime unit tests are part of the workflow now).
+2. Download the debug APK, install it on the dev phone, and confirm the `:core` ping plus the
+   Shizuku status panel (screenshot as evidence).
+3. Tap "Run T01 probe" in the More tab and record `probe-uid=2000`; repeat with the screen off
+   for 30 minutes.
+4. Attach evidence to `docs/agents/tasks/T01-shizuku-exec.md` and flip T01 to Done.
 5. If T01 passes, start `core/` extraction (Phase 1); T05 can run in parallel on desktop.
 
 ## Blockers
 
-- **T06 not green yet**: the APK job is the only failing CI job; see latest
-  `gh run list -R KingKaonix/aiaio`.
+- **T06 green** on run 42906877098; keep it green as the probe lands.
+- **Probe not yet run on the device** — T01's acceptance criteria are still unverified.
 - **Real device required** for T01/T02/T04/T07; emulators cannot validate Shizuku. A device is
   available (see above) but the probe code does not exist yet.
 - **No local JDK/Android SDK**: Rust runs locally now, but APK builds still happen only in

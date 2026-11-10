@@ -28,7 +28,9 @@ class RuntimeManager(private val context: Context) {
             .tag("aiaio-runtime")
             .processNameSuffix("runtime")
             .debuggable(BuildConfig.DEBUG)
-            .version(1)
+            // Bump whenever IRuntimeService changes: Shizuku restarts a user service whose
+            // version differs from the running one, which keeps binder transactions in sync.
+            .version(2)
     }
 
     private val connection = object : ServiceConnection {
@@ -55,12 +57,23 @@ class RuntimeManager(private val context: Context) {
     }
 
     /** Runs [argv] as shell and returns the service's JSON result. */
-    fun exec(argv: List<String>, cwd: String = ""): String {
-        val remote = service
-        if (remote == null) {
-            return errorJson("runtime service is not bound")
-        }
-        return runCatching { remote.exec(argv.toTypedArray(), cwd) }
+    fun exec(argv: List<String>, cwd: String = ""): String =
+        call("runtime service is not bound") { it.exec(argv.toTypedArray(), cwd) }
+
+    /** Creates [path] (and parents) inside the runtime root. */
+    fun mkdirs(path: String): String =
+        call("runtime service is not bound") { it.mkdirs(path) }
+
+    /** Writes [bytes] to [path] with the given Unix [mode] (e.g. 0x1C0 = 0700). */
+    fun writeFile(path: String, bytes: ByteArray, mode: Int = 0x1C0): String =
+        call("runtime service is not bound") { it.writeFile(path, bytes, mode) }
+
+    private inline fun call(
+        unboundMessage: String,
+        block: (IRuntimeService) -> String,
+    ): String {
+        val remote = service ?: return errorJson(unboundMessage)
+        return runCatching { block(remote) }
             .getOrElse { errorJson(it.message ?: it.javaClass.name) }
     }
 

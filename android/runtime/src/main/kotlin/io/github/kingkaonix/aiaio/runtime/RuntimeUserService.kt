@@ -16,6 +16,14 @@ import android.os.Process
 class RuntimeUserService : IRuntimeService.Stub() {
     override fun uid(): Int = Process.myUid()
 
+    override fun mkdirs(path: String?): String = runCatching {
+        RuntimeFiles.mkdirs(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun writeFile(path: String?, data: ByteArray?, mode: Int): String = runCatching {
+        RuntimeFiles.writeFile(path.orEmpty(), data ?: ByteArray(0), mode)
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
     override fun exec(argv: Array<out String>?, cwd: String?): String =
         ShellRunner.run(argv?.map { it.orEmpty() }?.toTypedArray() ?: emptyArray(), cwd.orEmpty())
 }

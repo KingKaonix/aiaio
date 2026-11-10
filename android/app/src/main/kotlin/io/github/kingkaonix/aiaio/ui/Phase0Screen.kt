@@ -18,6 +18,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -28,27 +29,40 @@ import io.github.kingkaonix.aiaio.BuildConfig
 import io.github.kingkaonix.aiaio.R
 import io.github.kingkaonix.aiaio.core.CoreClient
 import io.github.kingkaonix.aiaio.runtime.RuntimeManager
+import io.github.kingkaonix.aiaio.runtime.RuntimePaths
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import org.json.JSONObject
 import rikka.shizuku.Shizuku
 
 /**
- * Phase 0 status panel: proves the two-process wiring (Compose -> :core over AIDL) and shows
- * whether Shizuku is available. Real feature screens replace this in later phases.
+ * Phase 0 status panel: proves the two-process wiring (Compose -> :core over AIDL), shows
+ * whether Shizuku is available, and runs the T01 exec proof on demand.
+ *
+ * Real feature screens replace this in later phases.
  */
 @Composable
 fun Phase0Screen() {
     val context = LocalContext.current
     val appContext = context.applicationContext
+    val scope = rememberCoroutineScope()
 
     val coreClient = remember { CoreClient(appContext) }
+    val runtimeManager = remember { RuntimeManager(appContext) }
     var coreState by remember { mutableStateOf("checking…") }
     var shizukuState by remember { mutableStateOf("checking…") }
     var permissionResult by remember { mutableStateOf<String?>(null) }
+    var probeResult by remember { mutableStateOf<String?>(null) }
+    var probeRunning by remember { mutableStateOf(false) }
 
     DisposableEffect(coreClient) {
         coreClient.bind()
         onDispose { coreClient.unbind() }
+    }
+
+    DisposableEffect(runtimeManager) {
+        onDispose { runtimeManager.unbind() }
     }
 
     DisposableEffect(Unit) {
@@ -119,6 +133,25 @@ fun Phase0Screen() {
             Text(stringResource(R.string.request_shizuku_permission))
         }
 
+        Button(
+            enabled = !probeRunning,
+            onClick = {
+                probeRunning = true
+                probeResult = "running…"
+                scope.launch {
+                    probeResult = try {
+                        runT01Probe(runtimeManager)
+                    } finally {
+                        probeRunning = false
+                    }
+                }
+            },
+        ) {
+            Text(stringResource(R.string.t01_run))
+        }
+
+        probeResult?.let { StatusCard(title = stringResource(R.string.t01_result), value = it) }
+
         Text(
             text = "Next gate: T01 (execute a program in /data/local/tmp/aiaio as shell UID).",
             style = MaterialTheme.typography.bodySmall,
@@ -130,6 +163,61 @@ fun Phase0Screen() {
         )
     }
 }
+
+private val PROBE_DIR = "${RuntimePaths.ROOT}/probe"
+private val PROBE_SCRIPT = "$PROBE_DIR/probe.sh"
+
+private val PROBE_BODY = """
+    #!/system/bin/sh
+    echo "probe-uid=$(id -u)"
+    echo "probe-user=$(id -un 2>/dev/null || echo unknown)"
+    echo "probe-dir=$(pwd)"
+""".trimIndent()
+
+/**
+ * T01: write a program into /data/local/tmp/aiaio as shell, chmod 0700, execute it, and
+ * report each step. Runs entirely over the IRuntimeService AIDL boundary.
+ */
+private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
+    val bind = manager.bind()
+    if (bind.isFailure) {
+        appendLine("bind failed: ${bind.exceptionOrNull()?.message ?: "unknown"}")
+        return@buildString
+    }
+
+    val connected = withTimeoutOrNull(5_000) {
+        while (manager.service == null) {
+            delay(100)
+        }
+        true
+    } ?: false
+    if (!connected) {
+        appendLine("user service did not connect (Shizuku running and permission granted?)")
+        return@buildString
+    }
+
+    appendLine("uid: " + describe(manager.exec(listOf("id", "-u"))))
+    appendLine("mkdirs: " + describe(manager.mkdirs(PROBE_DIR)))
+    appendLine(
+        "write: " + describe(
+            manager.writeFile(PROBE_SCRIPT, PROBE_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
+        ),
+    )
+    appendLine("exec: " + describe(manager.exec(listOf(PROBE_SCRIPT))))
+}
+
+/** Turns the AIDL JSON envelope into one readable line. */
+private fun describe(result: String): String = runCatching {
+    val json = JSONObject(result)
+    val code = json.optInt("code", Int.MIN_VALUE)
+    val output = json.optString("output").trim()
+    val error = json.optString("error")
+    when {
+        error.isNotEmpty() -> "code=$code error=$error"
+        output.isNotEmpty() -> "code=$code output=$output"
+        else -> "code=$code"
+    }
+}.getOrElse { result }
 
 @Composable
 private fun StatusCard(title: String, value: String) {

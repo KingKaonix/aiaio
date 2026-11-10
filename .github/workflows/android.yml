@@ -118,6 +118,7 @@ jobs:
           gradle -p android \
             :terminal:testDebugUnitTest \
             :sync:testDebugUnitTest \
+            :runtime:testDebugUnitTest \
             :app:testGithubDebugUnitTest \
             --stacktrace
 
