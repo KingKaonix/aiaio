@@ -8,9 +8,11 @@
 //! so behaviour cannot drift between platforms.
 
 pub mod dispatch;
+pub mod files;
 pub mod ports;
 
 pub use dispatch::AppCore;
+pub use files::{DirEntry, FileBridge, FileStat, LocalFileBridge};
 pub use ports::{
     EventSink, NoopEventSink, PathProvider, PortError, SecretStore, UnsupportedPathProvider,
 };

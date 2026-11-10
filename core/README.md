@@ -34,7 +34,26 @@ cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs build --rele
 Protocol types and version live in `crates/runtime-proto`. Additive commands do not bump
 `PROTOCOL_VERSION`; changed payloads do.
 
+## Commands
+
+| Command | Args | Result |
+|---|---|---|
+| `ping` | – | `pong`, `protocol`, `coreVersion` |
+| `core.info` | – | `protocol`, `coreVersion`, `runtimeRoot` (null without a `PathProvider`) |
+| `fs.readFile` | `path` | `path`, `text` (UTF-8 only) |
+| `fs.writeFile` | `path`, `text`, `mode`? | `path`, `bytes`, `mode` (default `0600`) |
+| `fs.stat` | `path` | `path`, `len`, `mode`, `isFile`, `isDir` |
+| `fs.listDir` | `path` | `path`, `entries[]` (`name`, `isDir`, `len`), sorted |
+| `fs.rename` | `from`, `to` | `from`, `to` |
+| `fs.remove` | `path` | `path` |
+| `fs.restoreBackup` | `path` | `path`, `restored` |
+
+`fs.*` paths are **relative to the file bridge root** and cannot escape it (`..`, absolute
+paths and symlinks out of the root are rejected with `path_escape`). Writes are atomic and
+keep the previous content as `<name>.aiaio-bak`. Without a `FileBridge` the `fs.*` commands
+return `unsupported`, so a shell never believes a write happened when it did not.
+
 ## Phase 0 scope
 
-The façade answers `ping` and `core.info` only. Anything else returns an `unknown_command`
-error, which is what the Android Phase 0 status panel shows.
+The façade answers `ping`, `core.info` and the `fs.*` family. Anything else returns an
+`unknown_command` error, which is what the Android Phase 0 status panel shows.

@@ -18,6 +18,10 @@ pub enum PortError {
     Io(#[from] std::io::Error),
     #[error("path escapes the runtime root: {0}")]
     PathEscape(PathBuf),
+    #[error("no such file: {0}")]
+    NotFound(PathBuf),
+    #[error("read-back did not match what was written: {0}")]
+    Verification(PathBuf),
     #[error("secret store error: {0}")]
     Secret(String),
 }

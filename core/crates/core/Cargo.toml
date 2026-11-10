@@ -12,6 +12,8 @@ name = "aiaio_core_engine"
 
 [dependencies]
 aiaio-runtime-proto = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+uuid = { workspace = true }

@@ -1,6 +1,7 @@
 # T03 — Config round-trip proof
 
-**Owner:** Core pod · **Depends on:** T01 · **Status:** Not started
+**Owner:** Core pod · **Depends on:** T01 · **Status:** In progress — `FileBridge` + `fs.*`
+dispatch commands land with tests; device round trip pending
 
 ## Goal
 
@@ -31,3 +32,30 @@ bridge so that a round trip is byte-identical and crash-safe.
 
 Fixture hashes before/after, kill-test transcript, rejection cases, and a log of the 100-write
 concurrency run.
+
+## Progress (steps 1–6, platform-independent half)
+
+`core/crates/core/src/files.rs` implements the rules once, for every platform:
+
+- `FileBridge` trait (`read`, `write_atomic`, `list`, `stat`, `rename`, `remove`,
+  `restore_backup`) and `LocalFileBridge` rooted at a canonical directory.
+- Paths are relative to the root; absolute paths, `..`, `RootDir` and `Prefix` components are
+  rejected as `PortError::PathEscape`. The deepest existing ancestor is canonicalised, so a
+  symlinked directory that leaves the root is rejected even when the target does not exist.
+- `write_atomic`: temp file in the target directory → `write_all` → `sync_all` → `chmod` →
+  previous content copied to `<name>.aiaio-bak` → `rename` → directory `fsync` → read-back
+  byte comparison (`PortError::Verification` on mismatch). Temp files are removed on failure.
+- Writes to the same path are serialised through a per-path lock map, so 100 concurrent
+  writers always leave exactly one complete payload.
+- Dispatch exposes `fs.readFile`, `fs.writeFile` (text, optional `mode`), `fs.stat`,
+  `fs.listDir`, `fs.rename`, `fs.remove`, `fs.restoreBackup` with stable error codes
+  (`path_escape`, `not_found`, `invalid_args`, `unsupported`, `verification_failed`, `io`).
+- Text-only for now: non-UTF-8 payloads return `not_utf8`. Binary assets (skills) need a
+  base64/stream encoding in phase 2 — `TODO(phase-2)`.
+
+Tests cover byte-identical round trip, mode `0600`, traversal rejection (absolute, `..`,
+symlink out of root), missing files, backup + restore after a corrupt write, 100 concurrent
+writers, sorted listing, and rename/remove confinement.
+
+Still device-side: the AIDL adapter that implements `FileBridge` through `IRuntimeService`
+(T03 step 1's Android half) and the kill-test on the phone.
