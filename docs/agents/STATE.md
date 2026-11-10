@@ -10,7 +10,7 @@ Plan: `docs/PLAN.md`
 |---|---|---|---|
 | T01 | Shizuku exec proof | Runtime | In progress — probe green on device; 30-min screen-off soak running |
 | T02 | Bottle install proof | Runtime | Not started |
-| T03 | Config round-trip proof | Core | Not started |
+| T03 | Config round-trip proof | Core | In progress — `FileBridge` + `fs.*` land with tests; device adapter pending |
 | T04 | PTY proof | Terminal | Not started |
 | T05 | Proxy SSE proof | Core | Not started |
 | T06 | Build + 16 KB proof | Android | Done — run 42906877098 (both flavors, lint, 16 KB) |
