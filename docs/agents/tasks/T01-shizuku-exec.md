@@ -1,6 +1,7 @@
 # T01 — Shizuku exec proof
 
-**Owner:** Runtime pod · **Depends on:** T06 (installable APK) · **Status:** In progress — probe implemented, device run pending
+**Owner:** Runtime pod · **Depends on:** T06 (installable APK) · **Status:** In progress — probe
+passes on device; 30-minute screen-off soak running
 
 ## Goal
 
@@ -43,6 +44,28 @@ enforcing), Shizuku-Next manager 14.0.27-next, app `io.github.kingkaonix.aiaio.d
   `probe-user=shell`.
 - Second run after leaving the app (cold binder rebind, 11 s) reproduced the same output.
 - No `adb`, no root, no Termux: everything went through `IRuntimeService` (uid 2000).
+- Re-run on the soak build (`98fd830`): `probe-dir=/data/local/tmp/aiaio/probe`, i.e. `exec`
+  now runs with the cwd the AIDL call asked for. Soak started 15:37:59, `tick=1` written at
+  15:39:00 with `uid=2000`.
+
+### Shizuku permission on this device (important)
+
+Two managers are installed, and only one of them is the running server:
+
+| Package | Role |
+|---|---|
+| `af.shizuku.plus.api` | **the live server + permission dialog** (`…/authorization/RequestPermissionActivity`) |
+| `moe.shizuku.privileged.api` | Shizuku-Next UI; shows "Stopped" and "Start Shizuku to see apps" even while the server is alive and serving this app |
+
+The permission dialog is launched on the **main** display, so it is invisible to the
+background screen. `vscreen handoff in` (no package) moves it onto the background screen;
+tap **"Allow all the time"** there, then relaunch the app. The app's "Shizuku" status text is
+a snapshot taken at composition, so it can still read `permission not granted` after a grant
+that actually worked — the probe is the source of truth.
+
+The grant is bound to the signing certificate (the dialog lists
+`B6A7 737B 7AA5 … 11BD`), so a build signed with a new key needs a fresh grant, and removing
+the app drops it.
 
 ## Risks
 
