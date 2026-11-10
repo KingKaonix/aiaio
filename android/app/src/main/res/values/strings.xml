@@ -12,6 +12,7 @@
     <string name="phase0_body">Scaffold only. Features land after the Shizuku exec proof (T01) passes on a device.</string>
     <string name="core_state">Core service</string>
     <string name="shizuku_state">Shizuku</string>
+    <string name="refresh_status">Refresh status</string>
     <string name="request_shizuku_permission">Request Shizuku permission</string>
     <string name="t01_run">Run T01 probe</string>
     <string name="t01_result">T01 probe result</string>

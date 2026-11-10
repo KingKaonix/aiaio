@@ -129,6 +129,14 @@ fun Phase0Screen() {
 
         Button(
             onClick = {
+                shizukuState = RuntimeManager.probe()
+            },
+        ) {
+            Text(stringResource(R.string.refresh_status))
+        }
+
+        Button(
+            onClick = {
                 permissionResult = RuntimeManager.requestPermission()
             },
         ) {
@@ -145,6 +153,9 @@ fun Phase0Screen() {
                         runT01Probe(runtimeManager)
                     } finally {
                         probeRunning = false
+                        // The grant may have happened in Shizuku's own dialog, which does not
+                        // always reach the request-result listener; the probe is the truth.
+                        shizukuState = RuntimeManager.probe()
                     }
                 }
             },
