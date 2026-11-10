@@ -108,6 +108,15 @@ jobs:
             -o ../android/app/src/main/jniLibs \
             build --release -p aiaio-ffi
 
+      - name: Cache debug keystore
+        # Each runner starts without ~/.android, so AGP would generate a new debug key every
+        # run and sideloaded updates would fail with "package conflicts with an existing
+        # package". A stable cached key keeps debug builds updatable across runs.
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: android-debug-keystore-v1
+
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
