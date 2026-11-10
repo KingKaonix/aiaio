@@ -25,8 +25,14 @@ if [[ ! -d "$ANDROID_NDK_HOME" ]]; then
 fi
 
 echo "==> Building libaiaio_core.so (arm64-v8a, x86_64)"
-cargo ndk -t arm64-v8a -t x86_64 -o android/app/src/main/jniLibs \
-  build --manifest-path core/Cargo.toml --release -p aiaio-ffi
+# cargo-ndk resolves the workspace from the working directory, so run inside core/.
+# The 16 KB linker flags come from the repo-root .cargo/config.toml, which Cargo finds
+# by walking up from here.
+(
+  cd core
+  cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs \
+    build --release -p aiaio-ffi
+)
 
 echo "==> Assembling githubDebug APK"
 gradle -p android :app:assembleGithubDebug "$@"

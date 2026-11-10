@@ -19,7 +19,9 @@ cargo test --workspace
 cargo clippy --all-targets -- -D warnings
 cargo fmt --all -- --check
 
-# Android (needs NDK 27.2 and cargo-ndk)
+# Android (needs NDK 27.2 and cargo-ndk), run from this directory:
+# cargo-ndk resolves the workspace from the working directory, and the 16 KB linker
+# flags in ../.cargo/config.toml are found by walking up from here.
 cargo ndk -t arm64-v8a -t x86_64 -o ../android/app/src/main/jniLibs build --release -p aiaio-ffi
 ```
 
