@@ -24,7 +24,8 @@ class SyncMergeTest {
         val remote = record("b", updatedAt = 200, device = "phone")
 
         assertEquals(remote, mergeRecords(local, remote))
-        assertEquals(local, mergeRecords(remote, local))
+        // Argument order must not matter: the newer record wins either way.
+        assertEquals(remote, mergeRecords(remote, local))
     }
 
     @Test
