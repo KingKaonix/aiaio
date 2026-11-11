@@ -1,7 +1,7 @@
 # T01 — Shizuku exec proof
 
 **Owner:** Runtime pod · **Depends on:** T06 (installable APK) · **Status:** In progress — probe
-passes on device; 30-minute screen-off soak running
+passes on device; foreground-service soak built; device re-run pending (the previous detached soak died at tick 6 when the app was updated mid-run)
 
 ## Goal
 

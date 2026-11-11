@@ -8,7 +8,7 @@ Plan: `docs/PLAN.md`
 
 | ID | Task | Owner | Status |
 |---|---|---|---|
-| T01 | Shizuku exec proof | Runtime | In progress — probe green on device; 30-min screen-off soak running |
+| T01 | Shizuku exec probe | Runtime | In progress — probe green on device; detached soak died at tick 6 (process updated mid-run), foreground-service replacement built, device run pending |
 | T02 | Bottle install proof | Runtime | Not started |
 | T03 | Config round-trip proof | Core | In progress — `FileBridge` + `fs.*` land with tests; device adapter pending |
 | T04 | PTY proof | Terminal | Not started |
@@ -67,20 +67,15 @@ Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
 
 ## Next 5 actions
 
-1. Read the soak log after 30 idle minutes: expect `ticks=30 / 30`, a `done` line and
-   `wake=Asleep` on the ticks taken while the phone was idle; attach the card + `vscreen
-   status` (`phone_screen_off`) as evidence.
-2. Flip T01 to Done and start Phase 1: `core/` extraction (Tauri-free `dispatch(json)->json`,
-   DB v18 with sync columns, golden tests). T03/T05 can run in parallel without a device.
-3. Keep T06 green on the new stable signing key: the next CI build must update the installed
-   APK in place (no uninstall) — that is the proof the keystore fix holds.
-4. Then T02 (bottle install proof) and T04 (PTY proof) on the same phone.
+1. CI-build the foreground-service soak (`android: keep the Shizuku user service alive in a foreground service for the T01 screen-off soak`), install over `b36440d` (proves in-place update again with the cached key).
+2. Start the 30-minute screen-off soak from the app; expect `ticks=30/30`, `wake=Asleep` ticks, an `after ...` probe line and a `done` line; read it via "Read soak log" and attach the card text + `vscreen status` as evidence.
+3. Flip T01 to Done and start Phase 1: `core/` extraction (Tauri-free `dispatch(json)->json` already lands `fs.*`; next: DB v18 with sync columns, golden tests). T03/T05 can run in parallel without a device.
+4. Keep T06 green: every CI build must update the installed APK in place (no uninstall).
+5. Then T02 (bottle install proof) and T04 (PTY proof) on the same phone.
 
 ## Blockers
 
-- **T06 green** on run 42906877098; keep it green as the probe lands.
-- **Soak pending**: T01's third acceptance criterion (exec after 30 min screen-off) is not
-  verified yet.
+- **T01 soak not yet verified**: the old detached-script soak died at tick 6 when `b36440d` was installed over `98fd830`; the replacement (`SoakService`) needs a full 30-minute screen-off device run.
 - **Real device required** for T01/T02/T04/T07; emulators cannot validate Shizuku.
 - **No local JDK/Android SDK**: Rust runs locally now, but APK builds still happen only in
   GitHub Actions (Android build-tools/aapt2 for Linux aarch64 are not distributed).

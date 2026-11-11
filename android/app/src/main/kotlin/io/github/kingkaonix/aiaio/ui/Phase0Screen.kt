@@ -30,6 +30,7 @@ import io.github.kingkaonix.aiaio.R
 import io.github.kingkaonix.aiaio.core.CoreClient
 import io.github.kingkaonix.aiaio.runtime.RuntimeManager
 import io.github.kingkaonix.aiaio.runtime.RuntimePaths
+import io.github.kingkaonix.aiaio.Soak
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -49,7 +50,7 @@ fun Phase0Screen() {
     val scope = rememberCoroutineScope()
 
     val coreClient = remember { CoreClient(appContext) }
-    val runtimeManager = remember { RuntimeManager(appContext) }
+    val runtimeManager = RuntimeManager.shared(appContext)
     var coreState by remember { mutableStateOf("checking…") }
     var shizukuState by remember { mutableStateOf("checking…") }
     var permissionResult by remember { mutableStateOf<String?>(null) }
@@ -169,10 +170,10 @@ fun Phase0Screen() {
             enabled = !soakRunning,
             onClick = {
                 soakRunning = true
-                soakResult = "running…"
                 scope.launch {
                     soakResult = try {
-                        startSoak(runtimeManager)
+                        SoakService.start(appContext)
+                        "soak running — 30 minutes, screen off"
                     } finally {
                         soakRunning = false
                     }
@@ -213,35 +214,7 @@ fun Phase0Screen() {
 }
 
 private val PROBE_DIR = "${RuntimePaths.ROOT}/probe"
-private val PROBE_SCRIPT = "$PROBE_DIR/probe.sh"
-private val SOAK_SCRIPT = "$PROBE_DIR/soak.sh"
-private val SOAK_LOG = "$PROBE_DIR/soak.log"
-private const val SOAK_MINUTES = 30
-
-private val PROBE_BODY = """
-    #!/system/bin/sh
-    echo "probe-uid=$(id -u)"
-    echo "probe-user=$(id -un 2>/dev/null || echo unknown)"
-    echo "probe-dir=$(pwd)"
-""".trimIndent()
-
-/**
- * Heartbeat program for the screen-off soak. `$` is written as `${'$'}` because a Kotlin
- * raw string would otherwise treat the shell variables as string templates.
- */
-private val SOAK_BODY = """
-    #!/system/bin/sh
-    log=/data/local/tmp/aiaio/probe/soak.log
-    echo "start uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S)" >> "${'$'}log"
-    i=0
-    while [ "${'$'}i" -lt $SOAK_MINUTES ]; do
-      sleep 60
-      i=${'$'}((i + 1))
-      wake=${'$'}(dumpsys power | sed -n 's/.*mWakefulness=//p' | head -n 1)
-      echo "tick=${'$'}i uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S) wake=${'$'}wake" >> "${'$'}log"
-    done
-    echo "done uid=${'$'}(id -u) at ${'$'}(date +%H:%M:%S)" >> "${'$'}log"
-""".trimIndent()
+private val SOAK_LOG = Soak.LOG
 
 /** Binds the user service and waits for it; returns a message when it is not usable. */
 private suspend fun awaitService(manager: RuntimeManager): String? {
@@ -270,47 +243,19 @@ private suspend fun runT01Probe(manager: RuntimeManager): String = buildString {
     }
 
     appendLine("uid: " + describe(manager.exec(listOf("id", "-u"))))
-    appendLine("mkdirs: " + describe(manager.mkdirs(PROBE_DIR)))
+    appendLine("mkdirs: " + describe(manager.mkdirs(Soak.DIR)))
     appendLine(
         "write: " + describe(
-            manager.writeFile(PROBE_SCRIPT, PROBE_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
+            manager.writeFile(Soak.PROBE, Soak.PROBE_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
         ),
     )
-    appendLine("exec: " + describe(manager.exec(listOf(PROBE_SCRIPT), PROBE_DIR)))
+    appendLine("exec: " + describe(manager.exec(listOf(Soak.PROBE), Soak.DIR)))
 }
 
 /**
- * T01 soak: start [SOAK_SCRIPT] detached so the binder call returns immediately, then let
- * the device sit idle (screen off) and read [SOAK_LOG] afterwards.
+ * T01 soak is driven by [SoakService] (a foreground service) so the heartbeat keeps running
+ * with the screen off; the UI only starts the service and reads [Soak.LOG] on demand.
  */
-private suspend fun startSoak(manager: RuntimeManager): String = buildString {
-    awaitService(manager)?.let {
-        appendLine(it)
-        return@buildString
-    }
-
-    appendLine("mkdirs: " + describe(manager.mkdirs(PROBE_DIR)))
-    appendLine(
-        "write: " + describe(
-            manager.writeFile(SOAK_SCRIPT, SOAK_BODY.toByteArray(Charsets.UTF_8), 0x1C0),
-        ),
-    )
-    // setsid + redirects: the service must not hold the pipe for 30 minutes. Fallback to a
-    // plain background job when setsid is missing (the child still has no shared fds).
-    appendLine(
-        "start: " + describe(
-            manager.exec(
-                listOf(
-                    "/system/bin/sh",
-                    "-c",
-                    "( setsid $SOAK_SCRIPT || $SOAK_SCRIPT ) >/dev/null 2>&1 </dev/null &",
-                ),
-            ),
-        ),
-    )
-}
-
-/** Reads the soak heartbeat and reports how far it got. */
 private suspend fun readSoakLog(manager: RuntimeManager): String = buildString {
     awaitService(manager)?.let {
         appendLine(it)

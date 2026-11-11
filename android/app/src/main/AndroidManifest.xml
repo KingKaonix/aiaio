@@ -38,5 +38,12 @@
                 <data android:scheme="ccswitch" />
             </intent-filter>
         </activity>
+
+        <!-- Keeps the T01 screen-off soak alive for 30 minutes; runs in the app process so
+             it shares the UI's Shizuku binding (RuntimeManager.shared). -->
+        <service
+            android:name=".SoakService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false" />
     </application>
 </manifest>

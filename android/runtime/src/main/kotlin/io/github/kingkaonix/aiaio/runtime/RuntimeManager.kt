@@ -43,7 +43,14 @@ class RuntimeManager(private val context: Context) {
         }
     }
 
+    /**
+     * Binds once per process. The soak foreground service and the UI share one instance
+     * ([shared]), so a second bind call would create a duplicate Shizuku binding for the same
+     * user service; the early return makes that impossible.
+     */
+    @Synchronized
     fun bind(): Result<Unit> = runCatching {
+        if (service != null) return@runCatching
         check(Shizuku.pingBinder()) { "Shizuku is not running" }
         check(Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
             "Shizuku permission has not been granted"
@@ -85,6 +92,19 @@ class RuntimeManager(private val context: Context) {
 
     companion object {
         private const val PERMISSION_REQUEST_CODE = 4001
+
+        @Volatile
+        private var sharedInstance: RuntimeManager? = null
+
+        /**
+         * Process-wide manager. The T01 soak runs in a foreground service while the UI may be
+         * paused with the screen off; both must use the same Shizuku binding.
+         */
+        fun shared(context: Context): RuntimeManager = sharedInstance ?: synchronized(this) {
+            sharedInstance ?: RuntimeManager(context.applicationContext).also {
+                sharedInstance = it
+            }
+        }
 
         /** Human-readable Shizuku state, safe to call from the UI thread. */
         fun probe(): String = try {
