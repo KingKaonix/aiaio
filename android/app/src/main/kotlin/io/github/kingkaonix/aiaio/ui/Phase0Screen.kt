@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.github.kingkaonix.aiaio.BuildConfig
 import io.github.kingkaonix.aiaio.R
+import io.github.kingkaonix.aiaio.SoakService
 import io.github.kingkaonix.aiaio.core.CoreClient
 import io.github.kingkaonix.aiaio.runtime.RuntimeManager
 import io.github.kingkaonix.aiaio.runtime.RuntimePaths
@@ -270,7 +271,7 @@ private suspend fun readSoakLog(manager: RuntimeManager): String = buildString {
     }
 
     val lines = output.lines().filter { it.isNotBlank() }
-    appendLine("ticks=${lines.count { it.startsWith("tick=") }} / $SOAK_MINUTES")
+    appendLine("ticks=${lines.count { it.startsWith("tick=") }} / ${Soak.MINUTES}")
     appendLine("first: ${lines.first()}")
     appendLine("last: ${lines.last()}")
     if (lines.any { it.startsWith("done ") }) {

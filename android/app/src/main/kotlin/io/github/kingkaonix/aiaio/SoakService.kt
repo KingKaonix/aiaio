@@ -4,8 +4,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -162,7 +164,17 @@ class SoakService : Service() {
 
     private fun startForegroundCompat(id: Int, notification: Notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(id, notification, Service.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            // Read the declared foreground service type from the manifest so the call always
+            // matches what <service foregroundServiceType="..."> says (no hardcoded constant).
+            val type = try {
+                packageManager.getServiceInfo(
+                    ComponentName(this, SoakService::class.java),
+                    0,
+                ).foregroundServiceType
+            } catch (_: Exception) {
+                0
+            }
+            startForeground(id, notification, type)
         } else {
             startForeground(id, notification)
         }
