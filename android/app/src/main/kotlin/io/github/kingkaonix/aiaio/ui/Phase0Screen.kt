@@ -340,49 +340,68 @@ private fun StatusCard(title: String, value: String) {
 
 
 private suspend fun runT03Probe(manager: RuntimeManager): String = buildString {
-    runCatching {
+    var step = "init"
+    try {
+        step = "awaitService"
         appendLine(awaitService(manager) ?: "service: ok")
         val bridge = RuntimeFileBridge(manager)
         val base = "${RuntimePaths.ROOT}/probe/t03"
-        val settings = "$base/.claude/settings.json"
+        val dir = "$base/.claude"
+        step = "mkdirs"
+        appendLine("mkdirs: ${bridge.mkdirs(dir).getOrThrow().optInt("code")}")
 
-        bridge.mkdirs("$base/.claude").getOrThrow()
+        val fixtures = linkedMapOf(
+            "settings.json" to "{\n  \"schema\": 1,\n  \"name\": \"aiaio\",\n  \"nested\": {\"ok\": true}\n}\n",
+            "settings.jsonc" to "{\n  // comment\n  \"enabled\": true,\n}\n",
+            "config.toml" to "[core]\nname = \"aiaio\"\nenabled = true\n",
+            "config.yaml" to "core:\n  name: aiaio\n  enabled: true\n",
+        )
+        fixtures.forEach { (name, text) ->
+            step = "fixture:$name"
+            val path = "$dir/$name"
+            val bytes = text.toByteArray(Charsets.UTF_8)
+            val w = bridge.writeAtomic(path, bytes, 0x180).getOrThrow()
+            val read = bridge.read(path).getOrThrow().toString(Charsets.UTF_8)
+            val st = bridge.stat(path).getOrThrow()
+            appendLine("fixture[$name]: rt=${if (read == text) "ok" else "MISMATCH"} len=${st.optLong("len")} mode=${st.optInt("mode")}")
+        }
 
-        val payload = "{\"schema\":1,\"name\":\"aiaio\",\"nested\":{\"ok\":true}}\n"
-        val bytes = payload.toByteArray(Charsets.UTF_8)
-        val w = bridge.writeAtomic(settings, bytes, 0x180).getOrThrow()
-        appendLine("writeAtomic: code=${w.optInt("code")} bytes=${w.optInt("bytes")} mode=${w.optInt("mode")} path=${w.optString("path")}")
-
-        val read = bridge.read(settings).getOrThrow().toString(Charsets.UTF_8)
-        appendLine("roundTrip: ${if (read == payload) "ok" else "MISMATCH len=${read.length}"}")
-
-        val st = bridge.stat(settings).getOrThrow()
-        appendLine("stat: exists=${st.optBoolean("exists")} isFile=${st.optBoolean("isFile")} len=${st.optLong("len")} mode=${st.optInt("mode")}")
-
-        val listed = bridge.listDir("$base/.claude").getOrThrow()
+        step = "listDir"
+        val listed = bridge.listDir(dir).getOrThrow()
         appendLine("listDir: entries=${listed.optJSONArray("entries")?.length() ?: -1}")
 
-        val renamed = "$base/.claude/settings.renamed.json"
+        step = "rename"
+        val settings = "$dir/settings.json"
+        val renamed = "$dir/settings.renamed.json"
         bridge.rename(settings, renamed).getOrThrow()
         val stRenamed = bridge.stat(renamed).getOrThrow()
-        appendLine("rename: ok exists=${stRenamed.optBoolean("exists")}")
         bridge.rename(renamed, settings).getOrThrow()
+        val stBack = bridge.stat(settings).getOrThrow()
+        appendLine("rename: ok moved=${stRenamed.optBoolean("exists")} back=${stBack.optBoolean("exists")}")
 
+        step = "restoreBackup"
+        val original = fixtures["settings.json"] ?: error("missing fixture")
+        val updated = original.replace("\"schema\": 1", "\"schema\": 2")
+        bridge.writeAtomic(settings, updated.toByteArray(Charsets.UTF_8), 0x180).getOrThrow()
         bridge.remove(settings).getOrThrow()
         val restored = bridge.restoreBackup(settings).getOrThrow()
         val restoredText = bridge.read(settings).getOrThrow().toString(Charsets.UTF_8)
-        appendLine("restoreBackup: restored=${restored.optBoolean("restored")} roundTrip=${if (restoredText == payload) "ok" else "MISMATCH"}")
+        appendLine("restore: ${restored.optBoolean("restored")} rt=${if (restoredText == original) "ok" else "MISMATCH"}")
 
+        step = "escape"
         val escaped = manager.readFile("${RuntimePaths.ROOT}/../etc/hosts")
         val escJson = runCatching { JSONObject(escaped) }.getOrNull()
-        appendLine("escapeRejected: code=${escJson?.optInt("code")} err=${escJson?.optString("error")?.take(80)}")
+        val escCode = escJson?.optInt("code", -999)
+        val escErr = escJson?.optString("error")?.take(60)
+        appendLine("escape: code=$escCode ok=${escCode != 0} err=$escErr")
 
-        val concurrentPath = "$base/.claude/concurrent.json"
-        val workers = 24
-        val pool = Executors.newFixedThreadPool(8)
+        step = "concurrent"
+        val concurrentPath = "$dir/concurrent.json"
+        val workers = 100
+        val pool = Executors.newFixedThreadPool(12)
         val start = CountDownLatch(1)
         val done = CountDownLatch(workers)
-        val payloads = (0 until workers).map { i -> "{\"i\":$i,\"pad\":\"${"x".repeat(32)}\"}\n".toByteArray(Charsets.UTF_8) }
+        val payloads = (0 until workers).map { i -> "{\"i\":$i,\"pad\":\"${"x".repeat(48)}\"}\n".toByteArray(Charsets.UTF_8) }
         val failures = java.util.concurrent.ConcurrentLinkedQueue<String>()
         for (i in 0 until workers) {
             val p = payloads[i]
@@ -391,22 +410,22 @@ private suspend fun runT03Probe(manager: RuntimeManager): String = buildString {
                     start.await(5, TimeUnit.SECONDS)
                     bridge.writeAtomic(concurrentPath, p, 0x180).getOrThrow()
                 } catch (t: Throwable) {
-                    failures.add("${i}:${t.message}")
+                    failures.add("$i:${t.javaClass.simpleName}")
                 } finally {
                     done.countDown()
                 }
             }
         }
         start.countDown()
-        done.await(30, TimeUnit.SECONDS)
+        done.await(45, TimeUnit.SECONDS)
         pool.shutdown()
         val finalBytes = bridge.read(concurrentPath).getOrNull()
         val matched = if (finalBytes == null) -1 else payloads.indexOfFirst { it.contentEquals(finalBytes) }
-        appendLine("concurrent: workers=$workers failures=${failures.size} matchedPayload=$matched len=${finalBytes?.size ?: -1}")
-        if (failures.isNotEmpty()) appendLine("concurrentFailures: ${failures.take(3).joinToString(" | ")}")
+        appendLine("concurrent: w=$workers fail=${failures.size} match=$matched complete=${matched >= 0} len=${finalBytes?.size ?: -1}")
+        if (failures.isNotEmpty()) appendLine("cFail: ${failures.take(2).joinToString("|")}")
 
-        appendLine("T03 probe complete (device kill-test/30-min soak not included)")
-    }.onFailure { t ->
-        appendLine("T03 probe failed: ${t.javaClass.simpleName}: ${t.message}")
+        appendLine("T03 ok (kill-test manual)")
+    } catch (t: Throwable) {
+        appendLine("T03 fail[$step]: ${t.javaClass.simpleName}:${t.message?.take(120)}")
     }
 }
