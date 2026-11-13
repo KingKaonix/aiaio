@@ -164,20 +164,42 @@ internal object RuntimeBottles {
         val sig = Base64.getDecoder().decode(sigObj.getString("value"))
         val keyId = sigObj.optString("keyId")
         val pubRaw = lookupPublicKeyRaw(manifest, keyId) ?: throw SecurityException("unknown signing key: $keyId")
-        val verified = try {
-            val kf = KeyFactory.getInstance("Ed25519")
-            // X.509 SubjectPublicKeyInfo for Ed25519: fixed prefix + 32-byte raw key
-            val prefix = Base64.getDecoder().decode("MCowBQYDK2VwAyEA")
-            val x509 = X509EncodedKeySpec(prefix + pubRaw)
-            val pub = kf.generatePublic(x509)
-            val verifier = Signature.getInstance("Ed25519")
-            verifier.initVerify(pub)
-            verifier.update(unsigned)
-            verifier.verify(sig)
-        } catch (t: Throwable) {
-            throw SecurityException("signature verification failed: ${t.message}", t)
+        val errors = mutableListOf<String>()
+        val verified = tryVerifyEd25519(pubRaw, unsigned, sig, errors)
+        if (!verified) {
+            val detail = if (errors.isEmpty()) "invalid signature" else errors.joinToString("; ")
+            throw SecurityException("manifest signature invalid: $detail")
         }
-        if (!verified) throw SecurityException("manifest signature invalid")
+    }
+
+    private fun tryVerifyEd25519(pubRaw: ByteArray, unsigned: ByteArray, sig: ByteArray, errors: MutableList<String>): Boolean {
+        val spkiPrefix = Base64.getDecoder().decode("MCowBQYDK2VwAyEA")
+        val x509 = X509EncodedKeySpec(spkiPrefix + pubRaw)
+        val keyAlgs = listOf("Ed25519", "EdDSA", "Ed25519", "1.3.101.112")
+        val sigAlgs = listOf("Ed25519", "EdDSA", "NONEwithEdDSA", "1.3.101.112")
+        val seen = HashSet<String>()
+        for (ka in keyAlgs) {
+            val pub = try { KeyFactory.getInstance(ka).generatePublic(x509) } catch (t: Throwable) {
+                val msg = "KeyFactory[$ka]:${t.javaClass.simpleName}"
+                if (seen.add(msg)) errors.add(msg)
+                continue
+            }
+            for (sa in sigAlgs) {
+                try {
+                    val verifier = Signature.getInstance(sa)
+                    verifier.initVerify(pub)
+                    verifier.update(unsigned)
+                    if (verifier.verify(sig)) return true
+                    val msg = "Signature[$sa/$ka]:false"
+                    if (seen.add(msg)) errors.add(msg)
+                } catch (t: Throwable) {
+                    val msg = "Signature[$sa/$ka]:${t.javaClass.simpleName}:${t.message?.take(40)}"
+                    if (seen.add(msg)) errors.add(msg)
+                }
+            }
+        }
+        // try raw-key verify path via KeyFactory.generatePublic with RawKeySpec-like not available; fall through
+        return false
     }
 
     private fun lookupPublicKeyRaw(manifest: JSONObject, keyId: String): ByteArray? {
