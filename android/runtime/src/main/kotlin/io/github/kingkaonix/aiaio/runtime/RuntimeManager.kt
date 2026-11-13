@@ -30,7 +30,7 @@ class RuntimeManager(private val context: Context) {
             .debuggable(BuildConfig.DEBUG)
             // Bump whenever IRuntimeService changes: Shizuku restarts a user service whose
             // version differs from the running one, which keeps binder transactions in sync.
-            .version(3)
+            .version(4)
     }
 
     private val connection = object : ServiceConnection {
@@ -95,6 +95,21 @@ class RuntimeManager(private val context: Context) {
 
     fun writeFileAtomic(path: String, bytes: ByteArray, mode: Int = 0x180): String =
         call("runtime service is not bound") { it.writeFileAtomic(path, bytes, mode) }
+
+    fun bottleInstall(manifestJson: String, bottleId: String, version: String, archiveUrlOverride: String = ""): String =
+        call("runtime service is not bound") { it.bottleInstall(manifestJson, bottleId, version, archiveUrlOverride) }
+
+    fun bottleList(bottleId: String = ""): String =
+        call("runtime service is not bound") { it.bottleList(bottleId) }
+
+    fun bottleActivate(bottleId: String, version: String): String =
+        call("runtime service is not bound") { it.bottleActivate(bottleId, version) }
+
+    fun bottleRemove(bottleId: String, version: String): String =
+        call("runtime service is not bound") { it.bottleRemove(bottleId, version) }
+
+    fun bottleExec(bottleId: String, version: String = "", argv: List<String>, cwd: String = ""): String =
+        call("runtime service is not bound") { it.bottleExec(bottleId, version, argv.toTypedArray(), cwd) }
 
     private inline fun call(
         unboundMessage: String,

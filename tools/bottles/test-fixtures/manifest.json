@@ -1,0 +1,98 @@
+{
+  "blocked": [],
+  "bottles": [
+    {
+      "archive": {
+        "format": "tar.gz",
+        "sha256": "6f08e9ebeb6b2b91dace13fd7c89388524604712b43325f6701a929138607f30",
+        "size": 221,
+        "url": "http://192.168.12.227:8766/testnode-v1.0.0-android-arm64.tar.gz"
+      },
+      "capabilities": [
+        "exec",
+        "filesystem-home"
+      ],
+      "id": "testnode",
+      "install": {
+        "bin": [
+          "bin/node",
+          "bin/hello-pkg"
+        ],
+        "healthCheck": {
+          "argv": [
+            "bin/node",
+            "-v"
+          ],
+          "expectStdout": "v1.0.0-testnode",
+          "timeoutMs": 5000
+        },
+        "stripComponents": 0
+      },
+      "license": "MIT",
+      "licenseNote": "Toy proof bottle owned by this repo; not real Node.js.",
+      "name": "Test Node (T02 proof bottle)",
+      "notes": "T02 proof fixture",
+      "platforms": [
+        {
+          "abi": "arm64-v8a",
+          "minApi": 26,
+          "os": "android"
+        }
+      ],
+      "redistributable": true,
+      "sourceUrl": "https://github.com/KingKaonix/aiaio",
+      "version": "1.0.0"
+    },
+    {
+      "archive": {
+        "format": "tar.gz",
+        "sha256": "b6332fe8bb01addcf87d7bb4c1436288622705e695bd93ce44b7c9649e5f396b",
+        "size": 222,
+        "url": "http://192.168.12.227:8766/testnode-v2.0.0-android-arm64.tar.gz"
+      },
+      "capabilities": [
+        "exec",
+        "filesystem-home"
+      ],
+      "id": "testnode",
+      "install": {
+        "bin": [
+          "bin/node",
+          "bin/hello-pkg"
+        ],
+        "healthCheck": {
+          "argv": [
+            "bin/node",
+            "-v"
+          ],
+          "expectStdout": "v2.0.0-testnode",
+          "timeoutMs": 5000
+        },
+        "stripComponents": 0
+      },
+      "license": "MIT",
+      "licenseNote": "Toy proof bottle owned by this repo; not real Node.js.",
+      "name": "Test Node (T02 proof bottle)",
+      "notes": "T02 proof fixture",
+      "platforms": [
+        {
+          "abi": "arm64-v8a",
+          "minApi": 26,
+          "os": "android"
+        }
+      ],
+      "redistributable": true,
+      "sourceUrl": "https://github.com/KingKaonix/aiaio",
+      "version": "2.0.0"
+    }
+  ],
+  "generatedAt": "2026-11-13T23:30:00Z",
+  "keyId": "test-ed25519-v1",
+  "manifestVersion": 1,
+  "schemaVersion": 1,
+  "signature": {
+    "alg": "ed25519",
+    "keyId": "test-ed25519-v1",
+    "value": "xJpXd7Sqy+vw2gGg/vObcsaGY0kE70j7Fo1LSvac6sKAP5buf2Tqyco1dDMsooYXCQ/L4Gl5HsnceP9bNzPqDQ=="
+  }
+}

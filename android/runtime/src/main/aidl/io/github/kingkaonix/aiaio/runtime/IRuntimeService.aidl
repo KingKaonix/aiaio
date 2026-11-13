@@ -78,4 +78,37 @@ interface IRuntimeService {
      * Returns {"code":0,"path":"...","bytes":N,"mode":M} or {"code":-1,"error":"..."}.
      */
     String writeFileAtomic(in String path, in byte[] data, int mode);
+
+    /**
+     * Install a bottle described by manifest JSON [manifestJson] for bottle [bottleId] and [version].
+     * [archiveUrlOverride] when non-empty replaces the manifest archive URL (used for local/proof fixtures).
+     * Performs manifest/signature/checksum verification, staged download+unpack, health check,
+     * and atomic activation only on success.
+     * Returns JSON result or {"code":-1,"error":"..."}.
+     */
+    String bottleInstall(in String manifestJson, in String bottleId, in String version, in String archiveUrlOverride);
+
+    /**
+     * List installed bottle versions and current pointer under runtime root.
+     * Returns JSON result or {"code":-1,"error":"..."}.
+     */
+    String bottleList(in String bottleId);
+
+    /**
+     * Switch current symlink for [bottleId] to [version] after health check.
+     * Returns JSON result or {"code":-1,"error":"..."}.
+     */
+    String bottleActivate(in String bottleId, in String version);
+
+    /**
+     * Remove an installed non-current version (GC helper).
+     * Returns JSON result or {"code":-1,"error":"..."}.
+     */
+    String bottleRemove(in String bottleId, in String version);
+
+    /**
+     * Run bottle health check (or arbitrary argv relative to bottle root when healthCheck not used by caller flow).
+     * Returns exec-style JSON result.
+     */
+    String bottleExec(in String bottleId, in String version, in String[] argv, in String cwd);
 }

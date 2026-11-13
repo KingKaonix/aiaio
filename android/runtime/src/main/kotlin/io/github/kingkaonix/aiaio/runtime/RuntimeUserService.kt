@@ -52,6 +52,26 @@ class RuntimeUserService : IRuntimeService.Stub() {
         RuntimeFiles.writeFileAtomic(path.orEmpty(), data ?: ByteArray(0), mode)
     }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
 
+    override fun bottleInstall(manifestJson: String?, bottleId: String?, version: String?, archiveUrlOverride: String?): String = runCatching {
+        RuntimeBottles.install(manifestJson.orEmpty(), bottleId.orEmpty(), version.orEmpty(), archiveUrlOverride.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun bottleList(bottleId: String?): String = runCatching {
+        RuntimeBottles.list(bottleId.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun bottleActivate(bottleId: String?, version: String?): String = runCatching {
+        RuntimeBottles.activate(bottleId.orEmpty(), version.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun bottleRemove(bottleId: String?, version: String?): String = runCatching {
+        RuntimeBottles.remove(bottleId.orEmpty(), version.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun bottleExec(bottleId: String?, version: String?, argv: Array<out String>?, cwd: String?): String = runCatching {
+        RuntimeBottles.exec(bottleId.orEmpty(), version.orEmpty(), argv?.map { it.orEmpty() }?.toTypedArray() ?: emptyArray(), cwd.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
     override fun exec(argv: Array<out String>?, cwd: String?): String =
         ShellRunner.run(argv?.map { it.orEmpty() }?.toTypedArray() ?: emptyArray(), cwd.orEmpty())
 }
