@@ -1,6 +1,6 @@
 # T03 — Config round-trip proof
 
-**Owner:** Core pod · **Depends on:** T01 · **Status:** In progress (implementation added, device proof pending) — core `FileBridge`/`fs.*` + tests exist; Android/Shizuku runtime file-bridge (AIDL v3, service ops, app adapter) and a T03 device probe harness are implemented in-repo, but on-device round-trip/kill-test evidence not yet collected on a CI-built APK.
+**Owner:** Core pod · **Depends on:** T01 · **Status:** In progress (wired, CI green, device proof pending) — core `FileBridge`/`fs.*` + tests exist; Android/Shizuku runtime file-bridge (AIDL v3 append-only, service ops, app adapter), T03 Phase 0 probe harness, and core-service `fs.*` dispatch interception via `RuntimeFileBridge` are implemented and pushed; CI `ci-tooling` green but on-device evidence not yet collected (current vscreen app is older build).
 
 ## Goal
 
@@ -10,7 +10,7 @@ bridge so that a round trip is byte-identical and crash-safe.
 ## Steps
 
 1. Add `PathProvider` and `FileBridge` ports to `core/crates/core`; implement a desktop/local
-   adapter and a bridge adapter that calls the runtime service by ID. *(core done; Android/Shizuku-side adapter + AIDL ops added in-app/runtime — device proof pending)*
+   adapter and a bridge adapter that calls the runtime service by ID. *(core done; Android/Shizuku adapter + AIDL ops added; `CoreBridge`/`CoreClient` now intercept `fs.*` dispatch and route through `RuntimeFileBridge` when runtime attached — device proof pending)*
 2. Implement `readFile(path)`, `writeFileAtomic(path, bytes, mode)`, `listDir`, `stat`,
    `rename`, `remove` with a path allow-list rooted at `/data/local/tmp/aiaio/home` (runtime root confined via `RuntimePaths`). *(implemented in runtime service; atomic write uses backup/read-back verify and per-path serialization)*
 3. Reject `..`, absolute paths outside the root, symlinks, and hard links to outside the root. *(enforced by `RuntimePaths`/service path resolution; device rejection evidence pending)*
@@ -30,7 +30,7 @@ bridge so that a round trip is byte-identical and crash-safe.
 ## Evidence
 
 - 2026-11-13 (device/env, pre-impl): app `io.github.kingkaonix.aiaio.debug` running on Motorola moto g play 2024 (Android 14/SDK 34) with Shizuku ready/T01 proven, but runtime file ops and device harness were missing.
-- 2026-11-13 (implementation, CI pending/device unverified): extended `android/runtime` append-only — `IRuntimeService.aidl` adds `readFile/stat/listDir/rename/remove/restoreBackup/writeFileAtomic` (bumped Shizuku user-service `version` to 3 in `RuntimeManager`), `RuntimeFiles` implements confined read/stat/list/rename/remove + atomic write (temp in target dir, `fsync`, chmod, backup `.aiaio-bak`, atomic/non-atomic rename fallback, dir sync, read-back verify) with per-path locking and backup restore, `RuntimeUserService` exposes ops, and `RuntimeFileBridge` + Phase 0 "Run T03 file bridge probe" harness added in app for device checks (round-trip/stat/list/rename/restore, escape rejection, concurrent atomic writes). **No on-device T03 evidence collected yet** (requires CI-built APK install/run and kill-test). Fixture hashes, kill-test transcript, rejection cases, and 100-write log to be added.
+- 2026-11-13 (implementation + wiring, CI green / device unverified): commits `2461837d`, `9b294adf`, `8f7bfe34` on `main` — `IRuntimeService.aidl` (append-only: `readFile/stat/listDir/rename/remove/restoreBackup/writeFileAtomic`, Shizuku user-service v3), `RuntimeFiles` (confined atomic write temp/fsync/chmod/backup `.aiaio-bak`/rename/dir-sync/read-back verify, per-path locking, restore), `RuntimeUserService`/`RuntimeManager`/`RuntimeFileBridge`, Phase 0 "Run T03 file bridge probe" harness, and core-service `CoreBridge` fs.* interception + `CoreClient` runtime attach. CI `ci-tooling` run [43503506432](https://github.com/KingKaonix/aiaio/actions/runs/43503506432) (head `8f7bfe34c5b22ebb743a7291d7d6cb221cfbfa91`) **success**; artifacts: `aiaio-debug-apks` id 14075456485 (digest `sha256:adfa65a3cdb79f88204dd1a8ab702b3c1ca1ebb1e0c955404a7666f63379b15c`), `android-test-lint-reports` id 14075516466. **On-device evidence not collected:** vscreen device still runs older installed build (no T03 probe button visible) and environment cannot install APK/reliably download artifact contents for sideloading; probe run, traversal/mode/concurrency/restore results, 100-write log, and mid-write kill-test remain pending.
 
 ## Progress (steps 1–6, platform-independent half)
 
@@ -56,4 +56,4 @@ Tests cover byte-identical round trip, mode `0600`, traversal rejection (absolut
 symlink out of root), missing files, backup + restore after a corrupt write, 100 concurrent
 writers, sorted listing, and rename/remove confinement.
 
-Still device-side: run the new T03 probe on a CI-built debug APK against the Shizuku runtime (T01 device), capture round-trip/mode/traversal/concurrency/restore results, and perform the mid-write kill-test with evidence. No Rust/JNI wiring of `fs.*` dispatch to this Android bridge yet.
+Still device-side: install CI-built debug APK (run 43503506432, commit `8f7bfe34`) on the T01 device, run the T03 probe and capture round-trip/mode/stat/list/rename/restore, traversal rejection, and concurrency results, then perform mid-write kill-test and gather 100-write/fixture evidence. Consider adding explicit audit-log entry on writes and exercising JSONC/TOML/YAML fixtures + 0600 path in probe for full acceptance.
