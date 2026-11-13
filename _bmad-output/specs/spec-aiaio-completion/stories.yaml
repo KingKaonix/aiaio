@@ -1,0 +1,70 @@
+- id: "1"
+  title: P0 evidence refresh and go/no-go
+  description: >-
+    Refresh and record device/runtime evidence for T01–T07 in docs/agents/STATE.md and task specs with pass/fail
+    and kill-criterion decisions per CAP-1 in SPEC.md. Establishes the self-contained viability baseline and pivot
+    trigger inputs.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "2"
+  title: Companion-mode fallback scope
+  description: >-
+    Define and document an actionable Companion-mode fallback scope/contract in parallel (CAP-1, CAP-6): local vs
+    delegated responsibilities, UX/degradation, and security/licensing boundaries. Ensures a ready pivot without
+    ad-hoc replanning if P0 or later kill criteria trigger.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "3"
+  title: Core extraction foundations and DB v18 sync schema
+  description: >-
+    Establish contract-first dispatch/event/schema and incrementally extract upstream core into Tauri-free core
+    with golden/parity oracle and desktop canary per CAP-2. Design DB v18 with sync metadata/devices/oplog hooks
+    to enable CAP-3.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "4"
+  title: Merge-based sync engine and 3-device CI simulation
+  description: >-
+    Implement deterministic merge, tombstones, oplog+snapshot model and a 3-device CI simulation per CAP-3
+    (concurrency, offline/reconnect, clock skew, tombstone GC, interruption, corruption, large payload). Lay
+    groundwork for transports, Sync Doctor/conflict UX, and optional encryption.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "5"
+  title: Runtime, bottles, and proxy/security baseline
+  description: >-
+    Deliver hardened Shizuku-mediated runtime and bottle lifecycle, PTY plumbing, and loopback proxy/security
+    baseline per CAP-5 and CAP-1 proofs (allow-lists, manifest/signature/SHA-256 verification, token+peer-UID,
+    FGS/SSE, secret handling). Track runtime-repo/signing/rights dependencies (open question Q2).
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "6"
+  title: Native terminal TUI conformance
+  description: >-
+    Build PTY-to-VT pipeline, parser/screen/renderer, IME/modifier UX, and recorded-stream conformance/perf
+    sufficient for target CLIs per CAP-4. Targets 60 fps at 80x24 with documented mitigation if kill criteria apply.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "7"
+  title: Compose foundation and M1 provider flow
+  description: >-
+    Wire core client/AIDL and schema-driven Compose UI integrated with confirmed UX contracts, delivering real
+    provider list/CRUD from DB for M1 per CAP-6 and CAP-2. Uses DESIGN.md/EXPERIENCE.md as visual/behavior reference.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""
+- id: "8"
+  title: Feature parity waves, hardening, and release
+  description: >-
+    Execute parity waves A–G and hardening (soak/perf/security/a11y), delivering releaseable full/libre artifacts,
+    docs/onboarding, and desktop alignment on merge engine per CAP-6 (with CAP-3/4/5 integration). Gated by fixtures,
+    simulation/conformance tests, and device evidence.
+  spec_checkpoint: true
+  done_checkpoint: true
+  invoke_dev_with: ""

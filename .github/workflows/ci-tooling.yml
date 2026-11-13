@@ -1,0 +1,68 @@
+name: ci-tooling
+
+# Builds and verifies all tooling needed for project completion on GitHub Actions:
+# Rust core checks (test/clippy/fmt), Android JNI libs for arm64-v8a+x86_64 (16 KB aligned),
+# both debug APK flavors (github/libre), unit tests + lint for Android modules, parity checks,
+# and CI artifact bundles (APKs, hashes/certs, test/lint reports).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "core/**"
+      - ".cargo/**"
+      - "scripts/**"
+      - "tools/**"
+      - "docs/agents/**"
+      - ".github/workflows/android.yml"
+      - ".github/workflows/parity.yml"
+      - ".github/workflows/ci-tooling.yml"
+  pull_request:
+    paths:
+      - "android/**"
+      - "core/**"
+      - ".cargo/**"
+      - "scripts/**"
+      - "tools/**"
+      - ".github/workflows/android.yml"
+      - ".github/workflows/parity.yml"
+      - ".github/workflows/ci-tooling.yml"
+
+concurrency:
+  group: ci-tooling-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android + Rust core toolchain
+    uses: ./.github/workflows/android.yml
+
+  parity:
+    name: Upstream parity + sync surface checks
+    uses: ./.github/workflows/parity.yml
+
+  tooling-summary:
+    name: Tooling summary
+    needs: [android, parity]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Summarize results
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'EOF'
+          ## CI tooling (project completion)
+
+          | Job | Result |
+          |---|---|
+          | Android + Rust core (tests, clippy, fmt, APKs, lint, 16 KB) | ${{ needs.android.result }} |
+          | Upstream parity + sync surface checks | ${{ needs.parity.result }} |
+
+          Artifacts from `android` job (when successful): `aiaio-debug-apks`, `android-test-lint-reports`.
+          EOF
+          if [ "${{ needs.android.result }}" != "success" ] || [ "${{ needs.parity.result }}" != "success" ]; then
+            echo "One or more tooling jobs failed."
+            exit 1
+          fi

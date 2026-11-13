@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Onboarding Key Screen (Stealth Slate v5, Buttons V1 B1+B3)</title>
+<style>
+/* Key screen: Onboarding (guided, Shizuku optional). Stealth Slate A base, V1 Cyan Duo B1+B3 buttons.
+   [ASSUMPTION] hybrid O3-like flow pending confirmation (O1/O2/O3).
+   Buttons V1: Primary #1b4f66/#2f7f9e rail #4fd6ff; Secondary #164659/#286f8a rail #38c4ef. B1 icon + B3 rail. */
+*{box-sizing:border-box}
+body{margin:0;background:#000204;color:#d9e1ec;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}.lede{color:#7f8ea3;margin:0 0 16px;font-size:14px}
+.label{font-size:12px;color:#7f8ea3;margin:0 0 10px;font-family:ui-monospace,monospace}
+.rowwrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.device{width:360px;height:780px;border-radius:14px;background:linear-gradient(180deg,#06080c,#010203);border:1px solid #151c27;box-shadow:0 28px 60px rgba(0,0,0,.75);position:relative;overflow:hidden}
+.device:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.03) 1px,transparent 1px);background-size:20px 20px;opacity:.45;pointer-events:none}
+.statusbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:#748090;position:relative;z-index:2}
+.screen{padding:10px 16px 18px;position:relative;z-index:1;display:flex;flex-direction:column;height:calc(100% - 28px)}
+.progress{display:flex;gap:6px;margin:4px 0 14px}
+.seg{height:4px;flex:1;border-radius:999px;background:#131a24}.seg.on{background:#5f879e}
+.kicker{font-size:11px;color:#7fa6bc;letter-spacing:.08em;text-transform:uppercase;font-family:ui-monospace,monospace}
+.title{font-size:28px;font-weight:650;letter-spacing:-.02em;margin:6px 0 8px;line-height:1.15;color:#e8eef7}
+.sub{color:#7f8ea3;font-size:14px;line-height:1.55}
+.card{background:rgba(10,14,20,0.80);border:1px solid rgba(21,28,39,0.9);border-radius:8px;padding:14px;margin-top:14px;backdrop-filter:blur(2px)}
+.focus{background:linear-gradient(180deg,rgba(10,14,20,0.82),rgba(7,10,15,0.84));border-color:rgba(24,34,49,0.9)}
+.pill{display:inline-block;font-size:10px;padding:4px 8px;border-radius:999px;background:rgba(95,135,158,.10);color:#7fa6bc;border:1px solid rgba(95,135,158,.24);font-family:ui-monospace,monospace}
+.row{display:flex;justify-content:space-between;align-items:center}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.labelk{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.val{font-size:13px;color:#d9e1ec;margin-top:4px}
+.state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:ui-monospace,monospace;color:#a9b4c2}
+.dot{width:7px;height:7px;border-radius:50%;background:#748090}
+.list{margin-top:10px}
+.li{display:flex;gap:8px;padding:6px 0;font-size:13px;color:#a9b4c2}
+.li:before{content:"›";color:#5f879e;font-family:ui-monospace,monospace}
+.spacer{flex:1}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 12px 12px 14px;border-radius:8px;text-align:center;font-weight:600;font-size:14px;border:1px solid transparent;position:relative;overflow:hidden}
+.btn:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px}
+.btn svg{width:16px;height:16px;flex:0 0 16px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.p{background:#1b4f66;border-color:#2f7f9e;color:#eaf8ff}
+.p:before{background:#4fd6ff;box-shadow:0 0 10px rgba(79,214,255,.22)}
+.p svg{stroke:#7fe6ff}
+.s{background:#164659;border-color:#286f8a;color:#e6f6ff;margin-top:8px}
+.s:before{background:#38c4ef;box-shadow:0 0 8px rgba(56,196,239,.18)}
+.s svg{stroke:#74dcff}
+.note{font-size:12px;color:#7f8ea3;margin-top:12px;max-width:360px;line-height:1.5}
+.mini{background:rgba(6,8,12,0.74);border:1px solid rgba(21,28,39,0.85);border-radius:8px;padding:10px;margin-top:10px;backdrop-filter:blur(2px)}
+.panel{background:rgba(6,8,12,0.78);border:1px solid rgba(21,28,39,0.9);border-radius:12px;padding:14px;max-width:360px;backdrop-filter:blur(2px)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Key Screen — Onboarding (V1 Cyan Duo Buttons)</h1>
+  <p class="lede">Applied: Stealth Slate v5 base + <strong>V1 B1+B3</strong> bright cyan buttons. Shown as guided hybrid step (O3-like, <strong>[ASSUMPTION]</strong>) with Shizuku optional. Pending your pick: <strong>O1/O2/O3</strong>.</p>
+  <div class="rowwrap">
+    <div>
+      <p class="label">FLOW STEP 2/5 · Shizuku (optional) · degraded-friendly</p>
+      <div class="device">
+        <div class="statusbar"><span>09:41</span><span class="mono">setup</span></div>
+        <div class="screen">
+          <div class="progress"><div class="seg on"></div><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+          <div class="kicker">step 2 / 5 · runtime</div>
+          <div class="title">Privileged runtime</div>
+          <div class="sub">Connect Shizuku to unlock local tool execution and the native terminal. Core features work without it — enable later anytime.</div>
+
+          <div class="card focus">
+            <div class="row"><span class="pill">recommended · optional</span><span class="state"><span class="dot"></span>not detected</span></div>
+            <div style="margin-top:12px">
+              <div class="labelk">Shizuku service</div>
+              <div class="val mono">status: unavailable · permission: —</div>
+            </div>
+            <div class="list">
+              <div class="li">Enables runtime home at <span class="mono" style="margin-left:4px">/data/local/tmp/aiaio</span></div>
+              <div class="li">PTY for native terminal & local CLIs</div>
+              <div class="li">Bottle install, update, and health checks</div>
+            </div>
+          </div>
+
+          <div class="mini"><div class="sub" style="font-size:12px"><strong style="color:#d9e1ec">Without Shizuku:</strong> providers, MCP/skills/prompts, proxy, sync, import/export remain available.</div></div>
+
+          <div class="spacer"></div>
+          <div class="btn p"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M4 20h16"/></svg>Set up Shizuku</div>
+          <div class="btn s"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>Skip for now</div>
+        </div>
+      </div>
+      <p class="note"><strong>Applied:</strong> V1 cyan B1+B3 buttons on guided step. Nerdy mono/status + luxurious calm hierarchy. Direction personality (O1 ceremonial / O2 checklist / O3 hybrid) and exact steps/copy still open.</p>
+    </div>
+
+    <div class="panel">
+      <p class="label">OPEN FOR YOUR CALL</p>
+      <ul style="margin:0;padding-left:18px;color:#a9b4c2;font-size:13px;line-height:1.6">
+        <li><strong>Onboarding direction:</strong> O1 Cinematic Welcome, O2 Efficient Checklist, or O3 Luxe Guided Step (current mock leans O3)?</li>
+        <li><strong>Steps/ready state:</strong> Welcome → Shizuku (optional) → Runtime/bottles → Add provider → Proxy ready — correct?</li>
+        <li><strong>Shizuku prominence:</strong> how visible/ceremonial should optional+degraded path be?</li>
+        <li><strong>Any other corrections</strong> before I distill <code>DESIGN.md</code> and <code>EXPERIENCE.md</code>?</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

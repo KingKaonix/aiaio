@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Color Themes Exploration (Bluesminds-inspired defaults)</title>
+<style>
+/*
+  aiaio Color Themes Exploration 1
+  Assumptions: dark-first, sleek sans, medium density, luxurious + nerdy.
+  Bluesminds-inspired luminous cool accents on deep premium canvas.
+  Hex values documented per variation for lifting into DESIGN.md tokens.
+*/
+:root { --page-bg:#05070b; --page-fg:#e8eef7; --muted:#93a0b5; --card:#0c1118; --border:#1a2433; }
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(1200px 600px at 20% -10%,#0f1b2d 0%,#05070b 55%),#05070b;color:var(--page-fg);line-height:1.45}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 20px 48px}
+h1{font-size:28px;margin:0 0 6px;font-weight:650;letter-spacing:-0.02em}
+.lede{color:var(--muted);margin:0 0 22px;max-width:820px}
+.assume{font-size:13px;color:#9fb3cc;background:#0b1420;border:1px solid #1c2a3d;border-radius:10px;padding:10px 12px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.theme{background:linear-gradient(180deg,#0c121b,#0a0f16);border:1px solid #1a2433;border-radius:16px;overflow:hidden}
+.th-head{padding:14px 14px 10px;border-bottom:1px solid #182233}
+.th-name{font-weight:650;font-size:16px;margin:0}
+.th-tag{margin:3px 0 0;color:var(--muted);font-size:13px}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid #182233}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);color:#dfe8f5}
+.snip{padding:14px}
+.phone{border-radius:18px;padding:12px;border:1px solid rgba(255,255,255,.08)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{font-size:11px;padding:3px 8px;border-radius:999px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.h{font-size:13px;font-weight:600;margin:10px 0 6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.stat{padding:8px;border-radius:10px}
+.k{font-size:10px;color:#9aabbe;text-transform:uppercase;letter-spacing:.06em}
+.v{font-size:15px;font-weight:650;margin-top:2px}
+.v small{font-size:11px;font-weight:500;color:#9aabbe}
+.bar{height:6px;border-radius:999px;margin-top:6px;background:rgba(255,255,255,.08);overflow:hidden}
+.fill{height:100%;border-radius:999px}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;text-align:center;font-size:12px;font-weight:600;padding:8px 6px;border-radius:10px;border:1px solid transparent}
+.note{font-size:12px;color:var(--muted);margin-top:14px}
+
+/* Variation A — Luminous Blue (closest Bluesminds)
+   bg:#06090f surface:#0b121c surface-raised:#101926 border:#1a2940
+   text:#eaf2ff text-muted:#93a7c3 accent:#4cc9ff accent-2:#2f7cff
+   success:#3ddc97 warning:#ffcc66 danger:#ff6b7a glow:rgba(76,201,255,.35)
+*/
+.vA .phone{background:linear-gradient(180deg,#0b121c,#081018);box-shadow:0 0 0 1px #1a2940,0 20px 50px rgba(0,0,0,.45),0 0 40px rgba(76,201,255,.08) inset}
+.vA .pill{background:rgba(61,220,151,.12);color:#3ddc97;border:1px solid rgba(61,220,151,.25)}
+.vA .stat{background:#101926;border:1px solid #1a2940}
+.vA .fill{background:linear-gradient(90deg,#2f7cff,#4cc9ff)}
+.vA .btn.p{background:linear-gradient(90deg,#2f7cff,#4cc9ff);color:#041018}
+.vA .btn.s{background:#101926;color:#d7e6f8;border-color:#243650}
+
+/* Variation B — Cyan Glass (techy, airy depth)
+   bg:#05080d surface:#0a111a/raised #0f1823 border:#182636
+   accent:#36e2f6 accent-2:#5b8cff success:#2fd4a5 warning:#ffd166 danger:#ff6b6b
+*/
+.vB .phone{background:linear-gradient(180deg,rgba(15,24,35,.95),rgba(8,14,22,.98));box-shadow:0 0 0 1px #182636,0 18px 40px rgba(0,0,0,.5)}
+.vB .pill{background:rgba(54,226,246,.12);color:#36e2f6;border:1px solid rgba(54,226,246,.25)}
+.vB .stat{background:rgba(16,24,35,.9);border:1px solid #1d3042}
+.vB .fill{background:linear-gradient(90deg,#5b8cff,#36e2f6)}
+.vB .btn.p{background:linear-gradient(90deg,#1f8fff,#36e2f6);color:#031018}
+.vB .btn.s{background:rgba(15,24,35,.8);color:#d8e8f4;border-color:#223649}
+
+/* Variation C — Indigo Noir (more luxurious, moody)
+   bg:#07070c surface:#0f101a raised:#161827 border:#242844
+   accent:#7aa2ff accent-2:#b07cff success:#46d39a warning:#ffca7a danger:#ff6f91
+*/
+.vC .phone{background:linear-gradient(180deg,#111322,#0b0c16);box-shadow:0 0 0 1px #242844,0 24px 50px rgba(0,0,0,.55),0 0 50px rgba(122,162,255,.06)}
+.vC .pill{background:rgba(70,211,154,.12);color:#46d39a;border:1px solid rgba(70,211,154,.22)}
+.vC .stat{background:#161827;border:1px solid #262b48}
+.vC .fill{background:linear-gradient(90deg,#7aa2ff,#b07cff)}
+.vC .btn.p{background:linear-gradient(90deg,#6c8cff,#9b6cff);color:#0a0b14}
+.vC .btn.s{background:#161827;color:#e3e6ff;border-color:#2c3254}
+
+/* Variation D — Phosphor Lab (nerdier, instrument-like)
+   bg:#040807 surface:#091210 raised:#0e1916 border:#17332c
+   accent:#39e29d accent-2:#35c9ff success:#39e29d warning:#ffd36a danger:#ff7272
+*/
+.vD .phone{background:linear-gradient(180deg,#0a1411,#060b09);box-shadow:0 0 0 1px #17332c,0 20px 44px rgba(0,0,0,.55),0 0 36px rgba(57,226,157,.06)}
+.vD .pill{background:rgba(57,226,157,.12);color:#39e29d;border:1px solid rgba(57,226,157,.25)}
+.vD .stat{background:#0e1916;border:1px solid #18352d}
+.vD .fill{background:linear-gradient(90deg,#39e29d,#35c9ff)}
+.vD .btn.p{background:linear-gradient(90deg,#1fd48f,#35c9ff);color:#03110c}
+.vD .btn.s{background:#0e1916;color:#d8f3e8;border-color:#1d3f35}
+.vD .v,.vD .pill,.vD .k{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.vD .k{letter-spacing:.08em}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>aiaio — Color Theme Explorations</h1>
+  <p class="lede">Bluesminds-inspired defaults for a high-tech nerdy, luxurious UI. Dark-first, sleek sans, medium density. Four distinct registers to react to.</p>
+  <div class="assume"><strong>[ASSUMPTION]</strong> Dark-first only (pass 1). Cool luminous accents, deep premium canvas, subtle glow/depth. Nerdy = telemetry/status/precision; Luxurious = refined surfaces, restrained radiance. Avoid gimmicky neon overload & clutter.</div>
+
+  <div class="grid">
+    <section class="theme vA">
+      <div class="th-head"><p class="th-name">A. Luminous Blue</p><p class="th-tag">Closest to Bluesminds — confident, mission-control, premium calm</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#06090f">bg #06090F</span>
+        <span class="chip" style="background:#0b121c">surface #0B121C</span>
+        <span class="chip" style="background:#1a2940">border #1A2940</span>
+        <span class="chip" style="background:#4cc9ff;color:#041018">accent #4CC9FF</span>
+        <span class="chip" style="background:#2f7cff">accent-2 #2F7CFF</span>
+        <span class="chip" style="background:#3ddc97;color:#041018">success #3DDC97</span>
+      </div>
+      <div class="snip"><div class="phone">
+        <div class="row"><div style="font-weight:650">Dashboard</div><span class="pill">PROXY • LIVE</span></div>
+        <div class="h">Routing healthy</div>
+        <div style="font-size:12px;color:#93a7c3">Provider <strong style="color:#eaf2ff">openai/gpt-5</strong> · 42ms avg</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Requests</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">Quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">Cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="actions"><div class="btn p">Switch Provider</div><div class="btn s">Open Terminal</div></div>
+      </div></div>
+    </section>
+
+    <section class="theme vB">
+      <div class="th-head"><p class="th-name">B. Cyan Glass</p><p class="th-tag">Tech-forward, airy depth — luminous surfaces with crisp telemetry</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#05080d">bg #05080D</span>
+        <span class="chip" style="background:#0a111a">surface #0A111A</span>
+        <span class="chip" style="background:#182636">border #182636</span>
+        <span class="chip" style="background:#36e2f6;color:#031018">accent #36E2F6</span>
+        <span class="chip" style="background:#5b8cff">accent-2 #5B8CFF</span>
+        <span class="chip" style="background:#2fd4a5;color:#031018">success #2FD4A5</span>
+      </div>
+      <div class="snip"><div class="phone">
+        <div class="row"><div style="font-weight:650">Dashboard</div><span class="pill">RUNTIME • OK</span></div>
+        <div class="h">All systems nominal</div>
+        <div style="font-size:12px;color:#98aec4">Shizuku connected · 3 tools ready</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Latency</div><div class="v">38<small>ms</small></div></div>
+          <div class="stat"><div class="k">Sessions</div><div class="v">12</div></div>
+          <div class="stat"><div class="k">Sync</div><div class="v">2m</div></div>
+        </div>
+        <div class="actions"><div class="btn p">Start Proxy</div><div class="btn s">Providers</div></div>
+      </div></div>
+    </section>
+
+    <section class="theme vC">
+      <div class="th-head"><p class="th-name">C. Indigo Noir</p><p class="th-tag">Most luxurious — moody, editorial, refined glow for premium feel</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#07070c">bg #07070C</span>
+        <span class="chip" style="background:#0f101a">surface #0F101A</span>
+        <span class="chip" style="background:#242844">border #242844</span>
+        <span class="chip" style="background:#7aa2ff;color:#0a0b14">accent #7AA2FF</span>
+        <span class="chip" style="background:#b07cff">accent-2 #B07CFF</span>
+        <span class="chip" style="background:#46d39a;color:#0a0b14">success #46D39A</span>
+      </div>
+      <div class="snip"><div class="phone">
+        <div class="row"><div style="font-weight:650">Dashboard</div><span class="pill">SECURE • LINKED</span></div>
+        <div class="h">Command ready</div>
+        <div style="font-size:12px;color:#9aa3c7">Active · anthropic/claude · failover on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">Usage</div><div class="v">64<small>%</small></div><div class="bar"><div class="fill" style="width:64%"></div></div></div>
+          <div class="stat"><div class="k">Nodes</div><div class="v">5</div></div>
+          <div class="stat"><div class="k">Alerts</div><div class="v">0</div></div>
+        </div>
+        <div class="actions"><div class="btn p">Quick Switch</div><div class="btn s">Insights</div></div>
+      </div></div>
+    </section>
+
+    <section class="theme vD">
+      <div class="th-head"><p class="th-name">D. Phosphor Lab</p><p class="th-tag">Nerdiest — instrument/telemetry vibe, mono-forward data, lab precision</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#040807">bg #040807</span>
+        <span class="chip" style="background:#091210">surface #091210</span>
+        <span class="chip" style="background:#17332c">border #17332C</span>
+        <span class="chip" style="background:#39e29d;color:#03110c">accent #39E29D</span>
+        <span class="chip" style="background:#35c9ff;color:#03110c">accent-2 #35C9FF</span>
+        <span class="chip" style="background:#ffd36a;color:#03110c">warn #FFD36A</span>
+      </div>
+      <div class="snip"><div class="phone">
+        <div class="row"><div style="font-weight:650;font-family:Inter,system-ui,sans-serif">Dashboard</div><span class="pill">SYS:ONLINE</span></div>
+        <div class="h" style="font-family:ui-monospace,monospace">proxy.status = active</div>
+        <div style="font-size:12px;color:#8fb8aa;font-family:ui-monospace,monospace">127.0.0.1:8787 · token ok · peer verified</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req/min</div><div class="v">128</div></div>
+          <div class="stat"><div class="k">p99</div><div class="v">41<small>ms</small></div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+        </div>
+        <div class="actions"><div class="btn p">EXEC SWITCH</div><div class="btn s">TTY</div></div>
+      </div></div>
+    </section>
+  </div>
+
+  <p class="note">React with: pick A/B/C/D, mix elements (e.g. "A palette + D telemetry"), or steer (warmer/cooler, more glow, denser, more luxurious vs more nerdy). I’ll use your choice to drive dashboard/onboarding directions.</p>
+</div>
+</body>
+</html>

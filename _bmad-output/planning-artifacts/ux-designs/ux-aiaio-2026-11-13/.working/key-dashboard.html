@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Key Screen: Dashboard (Stealth Slate v4)</title>
+<style>
+/* Key screen mock: Dashboard (mission control). Phase B.
+   Illustrates: Component Patterns (status hero, stat tiles, action row, session list, runtime strip),
+   State Patterns (nominal/live state shown; degraded/no-Shizuku implied in strip), Key Flow (open app -> assess status -> quick action).
+   Stealth Slate v4: bg #010203 surface #06080c raised #0a0e14 border #151c27 text #d9e1ec muted #7f8ea3
+   accent #5f879e ok #5e9c86 warn #b8a06a. btn-p #1f3040/#304a5e/#deebf5 btn-s #0d131a/#1f2c3b/#cdd9e6.
+   Radii: panel 12 phone 14 inner 8 pill 999. Mono telemetry, subtle grid. [ASSUMPTION] content/structure. */
+*{box-sizing:border-box}
+body{margin:0;background:#000204;color:#d9e1ec;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}.lede{color:#7f8ea3;margin:0 0 16px;font-size:14px}
+.rowwrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.panel{background:#06080c;border:1px solid #151c27;border-radius:12px;padding:14px}
+.label{font-size:12px;color:#7f8ea3;margin:0 0 10px;font-family:ui-monospace,monospace}
+.device{width:360px;height:780px;border-radius:14px;background:linear-gradient(180deg,#06080c,#010203);border:1px solid #151c27;box-shadow:0 28px 60px rgba(0,0,0,.75);position:relative;overflow:hidden}
+.device:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.035) 1px,transparent 1px);background-size:20px 20px;opacity:.45;pointer-events:none}
+.statusbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:#748090;position:relative;z-index:2}
+.screen{padding:8px 14px 14px;position:relative;z-index:1;display:flex;flex-direction:column;gap:10px}
+.top{display:flex;justify-content:space-between;align-items:center}
+.brand{font-weight:650;font-size:18px;letter-spacing:-.01em;color:#e3e9f2}
+.pill{font-size:10px;padding:4px 8px;border-radius:999px;background:rgba(94,156,134,.10);color:#7fb39d;border:1px solid rgba(94,156,134,.22);font-family:ui-monospace,monospace}
+.hero{background:linear-gradient(180deg,#0a0e14,#070a0f);border:1px solid #182231;border-radius:12px;padding:14px}
+.kicker{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.h1{font-size:24px;font-weight:650;letter-spacing:-.02em;margin:4px 0 4px;color:#e8eef7}
+.meta{font-size:12px;color:#7f8ea3;font-family:ui-monospace,monospace}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:10px;padding:4px 7px;border-radius:6px;border:1px solid #1a2432;color:#a9b4c2;background:#06080c;font-family:ui-monospace,monospace}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#0a0e14;border:1px solid #151c27;border-radius:8px;padding:10px}
+.k{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.v{font-size:18px;font-weight:650;margin-top:4px;font-family:ui-monospace,monospace;color:#e3e9f2}
+.v span{font-size:12px;color:#7f8ea3;font-weight:500}
+.bar{height:5px;border-radius:999px;background:rgba(255,255,255,.05);margin-top:8px;overflow:hidden}
+.fill{height:100%;width:72%;border-radius:999px;background:linear-gradient(90deg,#547c95,#6d97ad)}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{padding:11px 10px;border-radius:8px;text-align:center;font-size:13px;font-weight:600}
+.p{background:#1f3040;border:1px solid #304a5e;color:#deebf5}
+.s{background:#0d131a;border:1px solid #1f2c3b;color:#cdd9e6}
+.card{background:#0a0e14;border:1px solid #151c27;border-radius:8px;padding:12px}
+.chead{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.ctitle{font-size:12px;font-weight:600;color:#cfd9e6}
+.item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #131a24;font-size:12px}
+.item:last-child{border-bottom:0}
+.name{color:#d9e1ec} .sub{color:#7f8ea3;font-size:11px;margin-top:2px}
+.ok{color:#7fb39d;font-family:ui-monospace,monospace;font-size:11px}
+.idle{color:#748090;font-family:ui-monospace,monospace;font-size:11px}
+.strip{font-size:11px;color:#748090;font-family:ui-monospace,monospace;display:flex;gap:12px;flex-wrap:wrap;padding:2px 2px 0}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#5e9c86;margin-right:5px;vertical-align:middle}
+.note{font-size:12px;color:#7f8ea3;margin-top:12px;max-width:360px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Key Screen — Dashboard (Phone)</h1>
+  <p class="lede">Phase B mock in Stealth Slate v4 (Theme A). Mission-control home: system status hero, key stats, quick actions, recent sessions, runtime strip. [ASSUMPTION] content & layout — for your reaction.</p>
+  <div class="rowwrap">
+    <div>
+      <p class="label">STATE: nominal / proxy live / shizuku connected</p>
+      <div class="device">
+        <div class="statusbar"><span>09:41</span><span class="mono">5G · 82%</span></div>
+        <div class="screen">
+          <div class="top"><div class="brand">aiaio</div><div class="pill">PROXY:LIVE</div></div>
+
+          <div class="hero">
+            <div class="kicker">Routing status</div>
+            <div class="h1">Systems nominal</div>
+            <div class="meta">active: openai/gpt-5 · 42ms avg · failover:on</div>
+            <div class="tags">
+              <span class="tag">shizuku:connected</span>
+              <span class="tag">runtime:3/3</span>
+              <span class="tag">peer:verified</span>
+              <span class="tag">mcp:4</span>
+            </div>
+          </div>
+
+          <div class="stats">
+            <div class="stat"><div class="k">req_24h</div><div class="v">1,284</div></div>
+            <div class="stat"><div class="k">quota</div><div class="v">72<span>%</span></div><div class="bar"><div class="fill"></div></div></div>
+            <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+          </div>
+
+          <div class="actions">
+            <div class="btn p">Switch provider</div>
+            <div class="btn s">Open terminal</div>
+          </div>
+
+          <div class="card">
+            <div class="chead"><div class="ctitle">Recent sessions</div><div class="kicker" style="color:#5f879e">view all</div></div>
+            <div class="item"><div><div class="name">codex · refactor-api</div><div class="sub">workspace ~/aiaio/core</div></div><div class="ok">ok · 2m</div></div>
+            <div class="item"><div><div class="name">claude · ui-draft</div><div class="sub">providers + routing</div></div><div class="idle">idle · 18m</div></div>
+            <div class="item"><div><div class="name">gemini · tests</div><div class="sub">android/core-service</div></div><div class="idle">done · 1h</div></div>
+          </div>
+
+          <div class="strip"><span><span class="dot"></span>127.0.0.1:8787</span><span>sync:2m ago</span><span>uptime:4h 12m</span></div>
+        </div>
+      </div>
+      <p class="note"><strong>Illustrates:</strong> status hero (hero/aha = “in control”), stat tiles, quick actions, recent sessions, runtime/telemetry strip. Nerdy cues: mono labels/readouts, tags, precise metrics. Lux cues: restrained depth, calm hierarchy, refined spacing.</p>
+    </div>
+
+    <div class="panel" style="max-width:360px">
+      <p class="label">NOTES / OPEN QUESTIONS [ASSUMPTION]</p>
+      <ul style="margin:0;padding-left:18px;color:#a9b4c2;font-size:13px;line-height:1.6">
+        <li>Hero emphasizes routing/proxy + runtime health as primary “in control” signal — adjust if another signal is primary.</li>
+        <li>Quick actions shown: Switch provider, Open terminal. Alternatives: Start/Stop proxy, Add provider, Usage.</li>
+        <li>Stats: req_24h, quota %, cost. Could swap/include latency, tokens, active sessions.</li>
+        <li>Tablet: same language, richer command-center layout (split panels / more density) — to be explored.</li>
+        <li>Degraded states (no Shizuku, proxy off, quota warn) need explicit variants in next pass.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

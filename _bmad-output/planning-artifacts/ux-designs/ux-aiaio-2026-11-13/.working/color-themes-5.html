@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Theme A v5 (Brighter Buttons)</title>
+<style>
+/*
+  Stealth Slate A v5 — D1 selected, buttons brightened per feedback.
+  Base palette unchanged: bg #010203 surface #06080c raised #0a0e14 border #151c27 text #d9e1ec muted #7f8ea3 accent #5f879e ok #5e9c86.
+  Radii: panel 12 phone 14 inner 8 pill 999.
+  Button tweak v5 (brighter than v4): primary bg #2a465e border #3d6482 text #eaf4ff;
+    secondary bg #162330 border #2a4258 text #d6e4f0. Fill lifted: #5f8ea8 -> #78a9c2.
+*/
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#010203;color:#dde3ea}
+.wrap{max-width:900px;margin:0 auto;padding:28px 20px 48px}
+h1{font-size:28px;margin:0 0 6px;font-weight:650;letter-spacing:-.02em}.lede{color:#848e9c;margin:0 0 14px}
+.note{font-size:13px;color:#a9b4c2;background:#06090d;border:1px solid #151c26;border-radius:8px;padding:10px 12px;margin-bottom:22px}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.theme{background:linear-gradient(180deg,#07090d,#040608);border:1px solid #151b24;border-radius:12px;overflow:hidden}
+.th-head{padding:14px;border-bottom:1px solid #131923}.th-name{font-weight:650;font-size:16px;margin:0}.th-tag{margin:3px 0 0;color:#848e9c;font-size:13px}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid #131923}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.07);color:#dde3ea}
+.snip{padding:14px}
+.phone{border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden;background:linear-gradient(180deg,#06080c,#010203);box-shadow:0 0 0 1px #151c27,0 20px 46px rgba(0,0,0,.75)}
+.phone:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.45;pointer-events:none}
+.inner{position:relative;z-index:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{font-size:10px;padding:3px 8px;border-radius:999px;font-family:ui-monospace,monospace;background:rgba(94,156,134,.10);color:#7fb39d;border:1px solid rgba(94,156,134,.22)}
+.h{font-size:13px;font-weight:600;margin:10px 0 4px}.sub{font-size:12px;color:#848e9c}.accent{color:#7fa6bc}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{padding:8px;border-radius:8px;background:#0a0e14;border:1px solid #151c27}
+.k{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.v{font-size:15px;font-weight:650;margin-top:2px;font-family:ui-monospace,monospace;color:#e3e9f2}
+.v small{font-size:11px;color:#848e9c}
+.bar{height:5px;border-radius:999px;margin-top:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#5f8ea8,#78a9c2)}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;text-align:center;font-size:12px;font-weight:600;padding:9px 6px;border-radius:8px;border:1px solid transparent}
+.btn.p{background:#2a465e;color:#eaf4ff;border:1px solid #3d6482}
+.btn.s{background:#162330;color:#d6e4f0;border:1px solid #2a4258}
+.tele{margin-top:8px;font-size:10px;color:#748090;font-family:ui-monospace,monospace;display:flex;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;background:#5e9c86}
+.ref .btn.p{background:#1f3040;color:#deebf5;border:1px solid #304a5e}
+.ref .btn.s{background:#0d131a;color:#cdd9e6;border:1px solid #1f2c3b}
+.ref .fill{background:linear-gradient(90deg,#547c95,#6d97ad)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Stealth Slate A — v5 (brighter buttons)</h1>
+  <p class="lede">D1 selected. Buttons brightened a step from v4 while keeping the muted, dark, nerdy/luxurious feel. Base palette unchanged.</p>
+  <div class="note"><strong>Button change (v5):</strong> primary <code>#2A465E / #3D6482 / #EAF4FF</code>, secondary <code>#162330 / #2A4258 / #D6E4F0</code>, fill <code>#5F8EA8 → #78A9C2</code>. Corners same as v4 (8px controls, 12px panels, 14px frame).</div>
+  <div class="compare">
+    <section class="theme">
+      <div class="th-head"><p class="th-name">v5 — brighter buttons</p><p class="th-tag">Clearer actions, still restrained and technical</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#2a465e">primary #2A465E</span>
+        <span class="chip" style="background:#3d6482">border #3D6482</span>
+        <span class="chip" style="background:#162330">secondary #162330</span>
+        <span class="chip" style="background:#2a4258">border #2A4258</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ dashboard</span></div><span class="pill"><span class="dot"></span>PROXY:LIVE</span></div>
+        <div class="h">Mission control <span class="accent">nominal</span></div>
+        <div class="sub">route <span class="v" style="font-size:11px">openai/gpt-5</span> · <span class="v" style="font-size:11px">42ms</span> · failover:on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req_24h</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>runtime:3/3</span><span>peer:verified</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Open terminal</div></div>
+      </div></div></div>
+    </section>
+
+    <section class="theme ref">
+      <div class="th-head"><p class="th-name">v4 — previous</p><p class="th-tag">Darker buttons (for comparison)</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#1f3040">primary #1F3040</span>
+        <span class="chip" style="background:#304a5e">border #304A5E</span>
+        <span class="chip" style="background:#0d131a">secondary #0D131A</span>
+        <span class="chip" style="background:#1f2c3b">border #1F2C3B</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ dashboard</span></div><span class="pill"><span class="dot"></span>PROXY:LIVE</span></div>
+        <div class="h">Mission control <span class="accent">nominal</span></div>
+        <div class="sub">route <span class="v" style="font-size:11px">openai/gpt-5</span> · <span class="v" style="font-size:11px">42ms</span> · failover:on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req_24h</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>runtime:3/3</span><span>peer:verified</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Open terminal</div></div>
+      </div></div></div>
+    </section>
+  </div>
+  <p class="lede" style="margin-top:16px;font-size:13px">If v5 looks right, I’ll lock these button tokens and carry them into D1 dashboard + onboarding key screens.</p>
+</div>
+</body>
+</html>

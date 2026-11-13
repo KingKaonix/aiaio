@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Onboarding Directions (1)</title>
+<style>
+/* Onboarding direction explorations. Bluesminds-inspired defaults: dark, sleek sans, luxurious+nerdy.
+   [ASSUMPTION] Guided steps to "ready": Welcome -> Shizuku (optional, graceful) -> Runtime/bottles -> Add provider -> Proxy ready.
+   Accent #4cc9ff/#2f7cff, success #3ddc97, bg #06090f, surface #0b121c, border #1a2940, text #eaf2ff, muted #93a7c3. */
+*{box-sizing:border-box} body{margin:0;background:#04070c;color:#eaf2ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.page{max-width:1300px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:26px;letter-spacing:-.02em} .lede{color:#93a7c3;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px}
+.dir{background:#0a0f16;border:1px solid #182233;border-radius:16px;overflow:hidden}
+.meta{padding:14px;border-bottom:1px solid #182233}
+.meta h2{margin:0;font-size:16px}.meta p{margin:4px 0 0;color:#93a7c3;font-size:13px}
+.frame{padding:14px;display:flex;justify-content:center}
+.device{width:320px;height:640px;border-radius:28px;background:linear-gradient(180deg,#0b121c,#070b12);border:1px solid #223149;box-shadow:0 30px 60px rgba(0,0,0,.55);position:relative;overflow:hidden}
+.notch{width:120px;height:18px;background:#05080d;border-radius:0 0 12px 12px;margin:0 auto}
+.screen{padding:14px;height:calc(100% - 18px);display:flex;flex-direction:column}
+.glow{position:absolute;left:-40px;top:40px;width:240px;height:240px;background:radial-gradient(circle,rgba(76,201,255,.18),rgba(76,201,255,0) 70%)}
+.kicker{font-size:11px;color:#4cc9ff;letter-spacing:.08em;text-transform:uppercase}
+.title{font-size:24px;font-weight:650;letter-spacing:-.02em;margin:6px 0 6px;line-height:1.15}
+.sub{color:#93a7c3;font-size:13px;line-height:1.5}
+.card{background:#101926;border:1px solid #1a2940;border-radius:14px;padding:12px;margin-top:12px}
+.step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #162236}
+.step:last-child{border-bottom:0}
+.dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 22px}
+.done{background:rgba(61,220,151,.15);color:#3ddc97;border:1px solid rgba(61,220,151,.3)}
+.active{background:rgba(76,201,255,.15);color:#4cc9ff;border:1px solid rgba(76,201,255,.35);box-shadow:0 0 12px rgba(76,201,255,.2)}
+.todo{background:#0e1622;color:#7f93ad;border:1px solid #223650}
+.opt{font-size:10px;color:#93a7c3;background:#0d1520;border:1px solid #223650;border-radius:999px;padding:2px 6px;margin-left:6px}
+.btn{margin-top:auto;padding:12px;border-radius:12px;text-align:center;font-weight:650;font-size:14px}
+.primary{background:linear-gradient(90deg,#2f7cff,#4cc9ff);color:#041018}
+.secondary{background:#101926;border:1px solid #243650;color:#d7e6f8;margin-top:8px;font-weight:600;font-size:13px;padding:10px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.progress{display:flex;gap:6px;margin:10px 0 2px}
+.seg{height:4px;flex:1;border-radius:999px;background:#162236}.seg.on{background:linear-gradient(90deg,#2f7cff,#4cc9ff)}
+.assume{font-size:12px;color:#9fb3cc;background:#0b1420;border:1px solid #1c2a3d;border-radius:10px;padding:10px 12px;margin:0 0 16px}
+/* O1 Cinematic welcome */
+.o1 .heroMark{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,rgba(47,124,255,.3),rgba(76,201,255,.15));border:1px solid #27466a;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(76,201,255,.18);margin-top:18px}
+.o1 .bigA{font-size:28px;font-weight:700;background:linear-gradient(90deg,#eaf2ff,#4cc9ff);-webkit-background-clip:text;color:transparent}
+/* O2 Efficient checklist */
+.o2 .title{font-size:22px} .o2 .card{margin-top:10px}
+/* O3 Luxe guided card */
+.o3 .focus{background:linear-gradient(180deg,#0f1b2d,#0c121c);border:1px solid #20324a;box-shadow:0 0 30px rgba(76,201,255,.06) inset}
+.o3 .pill{display:inline-block;font-size:11px;padding:3px 8px;border-radius:999px;background:rgba(76,201,255,.12);color:#4cc9ff;border:1px solid rgba(76,201,255,.25)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Onboarding — Design Directions (Phase A)</h1>
+  <p class="lede">Three personalities for first-run to “ready”. [ASSUMPTION] Guided steps: Welcome → Shizuku (optional) → Runtime/bottles → Add provider → Proxy ready. App degrades gracefully without Shizuku.</p>
+  <div class="assume"><strong>Luxurious + nerdy, medium density.</strong> Onboarding should feel polished/confident (ceremonial touch) yet efficient. Bluesminds-inspired dark canvas, luminous accents, sleek sans.</div>
+  <div class="grid">
+
+    <section class="dir o1">
+      <div class="meta"><h2>O1. Cinematic Welcome (Luxurious)</h2><p>Strong “command center” first impression with glowing hero mark and spacious pacing. Ceremonial but clear; technical steps revealed with confidence.</p></div>
+      <div class="frame"><div class="device"><div class="glow"></div><div class="notch"></div><div class="screen">
+        <div class="kicker">Welcome to aiaio</div>
+        <div class="heroMark"><span class="bigA">A</span></div>
+        <div class="title">Your AI command center, on device.</div>
+        <div class="sub">Manage providers, runtimes, and routing with precision. We’ll get you ready in a few steps.</div>
+        <div class="progress"><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+        <div class="card">
+          <div class="step"><div class="dot active">1</div><div><div style="font-weight:600">Connect Shizuku <span class="opt">optional</span></div><div class="sub">Enable local runtime & terminal power. You can skip and use core features.</div></div></div>
+          <div class="step"><div class="dot todo">2</div><div><div style="font-weight:600">Install runtime tools</div><div class="sub">Bottles for CLIs, verified & managed.</div></div></div>
+          <div class="step"><div class="dot todo">3</div><div><div style="font-weight:600">Add your first provider</div><div class="sub mono">keys · endpoints · models</div></div></div>
+        </div>
+        <div class="btn primary">Begin setup</div>
+        <div class="btn secondary">Skip to dashboard</div>
+      </div></div></div>
+    </section>
+
+    <section class="dir o2">
+      <div class="meta"><h2>O2. Efficient Checklist (Nerdy-practical)</h2><p>All steps visible upfront with clear status/telemetry. Fast, transparent, power-user friendly while staying polished. Shizuku marked optional inline.</p></div>
+      <div class="frame"><div class="device"><div class="notch"></div><div class="screen">
+        <div class="kicker mono">setup.init</div>
+        <div class="title">Get aiaio ready</div>
+        <div class="sub">Complete setup for full power. Core works without privileged runtime.</div>
+        <div class="card">
+          <div class="step"><div class="dot done">✓</div><div><div style="font-weight:600">Welcome</div><div class="sub">Device checks passed</div></div></div>
+          <div class="step"><div class="dot active">2</div><div><div style="font-weight:600">Shizuku service <span class="opt">optional</span></div><div class="sub mono">status: not connected · enables runtime + PTY</div></div></div>
+          <div class="step"><div class="dot todo">3</div><div><div style="font-weight:600">Runtime & bottles</div><div class="sub">0/3 tools installed</div></div></div>
+          <div class="step"><div class="dot todo">4</div><div><div style="font-weight:600">Provider</div><div class="sub">No providers configured</div></div></div>
+          <div class="step"><div class="dot todo">5</div><div><div style="font-weight:600">Proxy ready</div><div class="sub mono">127.0.0.1 · pending</div></div></div>
+        </div>
+        <div class="btn primary">Connect Shizuku</div>
+        <div class="btn secondary">Continue without Shizuku</div>
+      </div></div></div>
+    </section>
+
+    <section class="dir o3">
+      <div class="meta"><h2>O3. Luxe Guided Step (Balanced)</h2><p>One focused step at a time in a refined card with context and reassurance. Ceremonial yet efficient; nerdy facts in subtle mono. Best hybrid.</p></div>
+      <div class="frame"><div class="device"><div class="glow"></div><div class="notch"></div><div class="screen">
+        <div class="progress"><div class="seg on"></div><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+        <div class="kicker">Step 2 of 5</div>
+        <div class="title">Privileged runtime</div>
+        <div class="sub">Connect Shizuku to unlock local tool execution and the native terminal. aiaio works without it — you can enable later.</div>
+        <div class="card focus">
+          <span class="pill">Recommended · Optional</span>
+          <div style="font-weight:600;margin-top:8px">Shizuku status</div>
+          <div class="sub mono" style="margin-top:4px">service: not detected · permission: —</div>
+          <div class="sub" style="margin-top:8px">Used for: <span class="mono">/data/local/tmp/aiaio</span> runtime, PTY, bottle installs.</div>
+        </div>
+        <div class="card" style="padding:10px"><div class="sub" style="font-size:12px"><strong style="color:#eaf2ff">What’s next:</strong> install runtime tools → add a provider → routing ready.</div></div>
+        <div class="btn primary">Set up Shizuku</div>
+        <div class="btn secondary">Skip for now</div>
+      </div></div></div>
+    </section>
+
+  </div>
+  <p class="lede" style="margin-top:16px;font-size:13px">Pick O1/O2/O3 or mix (e.g. O1 welcome + O3 stepper). Tell me: how ceremonial vs efficient, and how prominently Shizuku-optional should appear?</p>
+</div>
+</body>
+</html>

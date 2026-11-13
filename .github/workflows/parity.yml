@@ -5,6 +5,7 @@ on:
     # Weekly, Monday 04:17 UTC. Upstream moves often; this keeps drift visible.
     - cron: "17 4 * * 1"
   workflow_dispatch:
+  workflow_call:
   pull_request:
     paths:
       - "core/**"
@@ -13,8 +14,8 @@ on:
       - ".github/workflows/parity.yml"
 
 concurrency:
-  group: parity-${{ github.ref }}
-  cancel-in-progress: true
+  group: parity-${{ github.workflow }}-${{ github.event_name == 'workflow_call' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
 
 env:
   RUST_TOOLCHAIN: "1.95"

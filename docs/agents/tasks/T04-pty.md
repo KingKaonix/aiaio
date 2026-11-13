@@ -1,6 +1,6 @@
 # T04 — PTY proof
 
-**Owner:** Terminal pod · **Depends on:** T01 · **Status:** Not started
+**Owner:** Terminal pod · **Depends on:** T01 · **Status:** Not started / unverified — T01 done on device, but no PTY (`forkpty`), no master-fd-over-Binder AIDL, and no terminal UI/session flow present in current debug build.
 
 ## Goal
 
@@ -19,14 +19,13 @@ interactive shell from Compose with correct echo, signals, resize and Unicode.
 
 ## Acceptance criteria
 
-- [ ] Interactive `bash` works end-to-end; `stty size` matches the Compose viewport.
-- [ ] `Ctrl-C`, `Ctrl-D`, `Ctrl-Z`, arrows, Home/End, Tab completion behave correctly.
-- [ ] UTF-8 and emoji pass through unchanged; no mojibake on resize.
-- [ ] 30-minute session with no fd leak and stable RSS (±10%).
-- [ ] Terminal survives app backgrounding (FGS) and reconnects to the same session.
-- [ ] Session close kills the child process group (no orphans in `/data/local/tmp`).
+- [ ] Interactive `bash` works end-to-end; `stty size` matches the Compose viewport. *(unverified)*
+- [ ] `Ctrl-C`, `Ctrl-D`, `Ctrl-Z`, arrows, Home/End, Tab completion behave correctly. *(unverified)*
+- [ ] UTF-8 and emoji pass through unchanged; no mojibake on resize. *(unverified)*
+- [ ] 30-minute session with no fd leak and stable RSS (±10%). *(unverified)*
+- [ ] Terminal survives app backgrounding (FGS) and reconnects to the same session. *(unverified)*
+- [ ] Session close kills the child process group (no orphans in `/data/local/tmp`). *(unverified)*
 
 ## Evidence
 
-Asciinema-style transcript or screen recording, `ls -l /proc/<pid>/fd` before/after,
-`stty size` output, and RSS samples.
+- 2026-11-13 (device inspection via Agent-VScreen): Motorola moto g play 2024 (Android 14/SDK 34) with `io.github.kingkaonix.aiaio.debug` shows only Phase 0 scaffold screen/tabs (Providers/MCP/Skills/Sessions/More) and T01 probe/soak controls; no interactive terminal surface observed. Runtime AIDL (`IRuntimeService`) exposes `uid/exec/mkdirs/writeFile` only (no PTY allocation/fd passing). Transcript, fd/RSS samples, `stty`/resize/Unicode/signal/session-cleanup proof not possible on current build. Asciinema/recording, `ls -l /proc/<pid>/fd`, and RSS samples to be added when PTY is implemented.

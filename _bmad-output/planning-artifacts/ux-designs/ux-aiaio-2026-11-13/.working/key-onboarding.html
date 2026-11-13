@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Key Screen: Onboarding (Stealth Slate v4)</title>
+<style>
+/* Key screen mock: Onboarding (Shizuku step, guided). Phase B.
+   Illustrates: Component Patterns (stepper/progress, focused step card, status readout, primary/secondary actions),
+   State Patterns (optional/degraded-friendly step shown; connected/not-detected states), Key Flow (welcome -> Shizuku optional -> runtime -> provider -> proxy ready).
+   Stealth Slate v4 tokens/radii. [ASSUMPTION] flow & copy. */
+*{box-sizing:border-box}
+body{margin:0;background:#000204;color:#d9e1ec;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}.lede{color:#7f8ea3;margin:0 0 16px;font-size:14px}
+.rowwrap{display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start}
+.label{font-size:12px;color:#7f8ea3;margin:0 0 10px;font-family:ui-monospace,monospace}
+.device{width:360px;height:780px;border-radius:14px;background:linear-gradient(180deg,#06080c,#010203);border:1px solid #151c27;box-shadow:0 28px 60px rgba(0,0,0,.75);position:relative;overflow:hidden}
+.device:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.03) 1px,transparent 1px);background-size:20px 20px;opacity:.45;pointer-events:none}
+.statusbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:#748090;position:relative;z-index:2}
+.screen{padding:10px 16px 18px;position:relative;z-index:1;display:flex;flex-direction:column;height:calc(100% - 28px)}
+.progress{display:flex;gap:6px;margin:4px 0 14px}
+.seg{height:4px;flex:1;border-radius:999px;background:#131a24}.seg.on{background:#5f879e}
+.kicker{font-size:11px;color:#7fa6bc;letter-spacing:.08em;text-transform:uppercase;font-family:ui-monospace,monospace}
+.title{font-size:28px;font-weight:650;letter-spacing:-.02em;margin:6px 0 8px;line-height:1.15;color:#e8eef7}
+.sub{color:#7f8ea3;font-size:14px;line-height:1.55}
+.card{background:#0a0e14;border:1px solid #151c27;border-radius:8px;padding:14px;margin-top:14px}
+.focus{background:linear-gradient(180deg,#0a0e14,#070a0f);border-color:#182231}
+.pill{display:inline-block;font-size:10px;padding:4px 8px;border-radius:999px;background:rgba(95,135,158,.10);color:#7fa6bc;border:1px solid rgba(95,135,158,.24);font-family:ui-monospace,monospace}
+.row{display:flex;justify-content:space-between;align-items:center}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.labelk{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,monospace}
+.val{font-size:13px;color:#d9e1ec;margin-top:4px}
+.state{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-family:ui-monospace,monospace;color:#a9b4c2}
+.dot{width:7px;height:7px;border-radius:50%;background:#748090}
+.dot.ok{background:#5e9c86;box-shadow:0 0 0 3px rgba(94,156,134,.12)}
+.list{margin-top:10px}
+.li{display:flex;gap:8px;padding:6px 0;font-size:13px;color:#a9b4c2}
+.li:before{content:"›";color:#5f879e;font-family:ui-monospace,monospace}
+.spacer{flex:1}
+.btn{padding:12px;border-radius:8px;text-align:center;font-weight:600;font-size:14px}
+.p{background:#1f3040;border:1px solid #304a5e;color:#deebf5}
+.s{background:#0d131a;border:1px solid #1f2c3b;color:#cdd9e6;margin-top:8px}
+.note{font-size:12px;color:#7f8ea3;margin-top:12px;max-width:360px;line-height:1.5}
+.mini{background:#06080c;border:1px solid #151c27;border-radius:8px;padding:10px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Key Screen — Onboarding (Phone)</h1>
+  <p class="lede">Phase B mock in Stealth Slate v4 (Theme A). Guided step shown: Shizuku (optional) with graceful-degradation path. Hybrid luxe/nerdy (O3-like). [ASSUMPTION] flow & copy — for your reaction.</p>
+  <div class="rowwrap">
+    <div>
+      <p class="label">FLOW STEP 2/5: privileged runtime (Shizuku) — optional</p>
+      <div class="device">
+        <div class="statusbar"><span>09:41</span><span class="mono">setup</span></div>
+        <div class="screen">
+          <div class="progress"><div class="seg on"></div><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+          <div class="kicker">step 2 / 5 · runtime</div>
+          <div class="title">Privileged runtime</div>
+          <div class="sub">Connect Shizuku to unlock local tool execution and the native terminal. aiaio’s core features work without it — you can enable this later.</div>
+
+          <div class="card focus">
+            <div class="row"><span class="pill">recommended · optional</span><span class="state"><span class="dot"></span>not detected</span></div>
+            <div style="margin-top:12px">
+              <div class="labelk">Shizuku service</div>
+              <div class="val mono">status: unavailable · permission: —</div>
+            </div>
+            <div class="list">
+              <div class="li">Enables runtime home at <span class="mono" style="margin-left:4px">/data/local/tmp/aiaio</span></div>
+              <div class="li">PTY for native terminal & local CLIs</div>
+              <div class="li">Bottle install, update, and health checks</div>
+            </div>
+          </div>
+
+          <div class="mini"><div class="sub" style="font-size:12px"><strong style="color:#d9e1ec">Without Shizuku:</strong> providers, MCP/skills/prompts, proxy, sync, import/export remain available.</div></div>
+
+          <div class="spacer"></div>
+          <div class="btn p">Set up Shizuku</div>
+          <div class="btn s">Skip for now</div>
+        </div>
+      </div>
+      <p class="note"><strong>Illustrates:</strong> progress stepper, focused step card, optional/degraded-friendly messaging, telemetry readout, clear primary/skip actions. Nerdy: mono paths/status. Lux: calm hierarchy, confident copy space, restrained surfaces.</p>
+    </div>
+
+    <div class="panel" style="max-width:360px">
+      <p class="label">FLOW + STATES [ASSUMPTION]</p>
+      <ul style="margin:0;padding-left:18px;color:#a9b4c2;font-size:13px;line-height:1.6">
+        <li><strong>Steps:</strong> 1 Welcome → 2 Shizuku (optional) → 3 Runtime/bottles → 4 Add first provider → 5 Proxy ready.</li>
+        <li><strong>Degradation:</strong> “Skip for now” keeps path to ready for core features; dashboard should reflect limited runtime state.</li>
+        <li><strong>Alt states to mock next:</strong> Shizuku detected/permission needed, connected; runtime installing/verified; provider added; all-ready celebration.</li>
+        <li><strong>Personality:</strong> hybrid (O3) — guided focus with transparent status. Adjust toward O1 (more ceremonial) or O2 (checklist/telemetry-forward) if preferred.</li>
+        <li><strong>Tablet:</strong> wider layout with persistent step overview + detail panel — to be explored.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</body>
+</html>

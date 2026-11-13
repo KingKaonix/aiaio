@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Onboarding O1 Cinematic Welcome (V1 B1+B3)</title>
+<style>
+/* Key screen: Onboarding O1 Cinematic Welcome. Stealth Slate A base, V1 Cyan Duo B1+B3 buttons.
+   Governs: EXPERIENCE Key Flows (onboarding), Component/State patterns. [ASSUMPTION] steps/copy accepted.
+   Buttons V1: Primary #1b4f66/#2f7f9e rail #4fd6ff icon #7fe6ff; Secondary #164659/#286f8a rail #38c4ef icon #74dcff. */
+*{box-sizing:border-box}
+body{margin:0;background:#000204;color:#d9e1ec;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:900px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:24px;letter-spacing:-.02em}.lede{color:#7f8ea3;margin:0 0 16px;font-size:14px}
+.label{font-size:12px;color:#7f8ea3;margin:0 0 10px;font-family:ui-monospace,monospace}
+.device{width:360px;height:780px;border-radius:14px;background:linear-gradient(180deg,#06080c,#010203);border:1px solid #151c27;box-shadow:0 28px 60px rgba(0,0,0,.75);position:relative;overflow:hidden}
+.device:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.03) 1px,transparent 1px);background-size:20px 20px;opacity:.4;pointer-events:none}
+.glow{position:absolute;left:-40px;top:60px;width:300px;height:300px;background:radial-gradient(circle,rgba(79,214,255,.10),rgba(79,214,255,0) 70%);pointer-events:none}
+.glow2{position:absolute;right:-60px;bottom:120px;width:220px;height:220px;background:radial-gradient(circle,rgba(95,135,158,.10),rgba(95,135,158,0) 70%);pointer-events:none}
+.statusbar{height:28px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:#748090;position:relative;z-index:2}
+.screen{padding:18px 18px 20px;position:relative;z-index:1;display:flex;flex-direction:column;height:calc(100% - 28px)}
+.kicker{font-size:11px;color:#7fa6bc;letter-spacing:.1em;text-transform:uppercase;font-family:ui-monospace,monospace}
+.heroMark{width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,rgba(27,79,102,.55),rgba(22,70,89,.35));border:1px solid #2a5f78;display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(79,214,255,.10), inset 0 1px 0 rgba(255,255,255,.04);margin:18px 0 10px}
+.heroMark span{font-size:30px;font-weight:700;letter-spacing:-.02em;background:linear-gradient(180deg,#eaf8ff,#7fe6ff);-webkit-background-clip:text;color:transparent}
+.title{font-size:30px;font-weight:650;letter-spacing:-.03em;margin:6px 0 8px;line-height:1.12;color:#e8eef7}
+.sub{color:#7f8ea3;font-size:14px;line-height:1.55;max-width:300px}
+.progress{display:flex;gap:6px;margin:16px 0 4px}
+.seg{height:4px;flex:1;border-radius:999px;background:#131a24}.seg.on{background:linear-gradient(90deg,#2f7f9e,#4fd6ff)}
+.card{background:linear-gradient(180deg,rgba(10,14,20,0.80),rgba(7,10,15,0.82));border:1px solid rgba(24,34,49,0.9);border-radius:8px;padding:12px;margin-top:14px;backdrop-filter:blur(2px)}
+.step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #131a24}
+.step:last-child{border-bottom:0}
+.dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 22px;font-family:ui-monospace,monospace}
+.active{background:rgba(79,214,255,.10);color:#4fd6ff;border:1px solid rgba(79,214,255,.28)}
+.todo{background:rgba(6,8,12,0.72);color:#748090;border:1px solid rgba(26,36,50,0.9)}
+.stitle{font-weight:600;font-size:13px;color:#d9e1ec}
+.ssub{font-size:12px;color:#748090;margin-top:2px;line-height:1.4}
+.opt{font-size:10px;color:#7f8ea3;background:rgba(6,8,12,0.72);border:1px solid rgba(26,36,50,0.9);border-radius:999px;padding:2px 6px;margin-left:6px;font-family:ui-monospace,monospace;vertical-align:middle}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.spacer{flex:1}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 12px 12px 14px;border-radius:8px;text-align:center;font-weight:600;font-size:14px;border:1px solid transparent;position:relative;overflow:hidden}
+.btn:before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px}
+.btn svg{width:16px;height:16px;flex:0 0 16px;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none}
+.p{background:#1b4f66;border-color:#2f7f9e;color:#eaf8ff}
+.p:before{background:#4fd6ff;box-shadow:0 0 10px rgba(79,214,255,.22)}
+.p svg{stroke:#7fe6ff}
+.s{background:#164659;border-color:#286f8a;color:#e6f6ff;margin-top:8px}
+.s:before{background:#38c4ef;box-shadow:0 0 8px rgba(56,196,239,.18)}
+.s svg{stroke:#74dcff}
+.note{font-size:12px;color:#7f8ea3;margin-top:12px;max-width:360px;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Key Screen — Onboarding O1 (Cinematic Welcome)</h1>
+  <p class="lede">Locked: <strong>O1 Cinematic Welcome</strong> with Stealth Slate v5 base, V1 Cyan Duo B1+B3 buttons, and translucent panels for ambient background. Luxurious, confident first impression with clear optional runtime path. [ASSUMPTION] steps/copy accepted.</p>
+  <p class="label">PHONE · welcome / step 1 of 5</p>
+  <div class="device"><div class="glow"></div><div class="glow2"></div>
+    <div class="statusbar"><span>09:41</span><span>setup</span></div>
+    <div class="screen">
+      <div class="kicker">aiaio · init.sequence</div>
+      <div class="heroMark"><span>A</span></div>
+      <div class="title">Your AI command center, on device.</div>
+      <div class="sub">Manage providers, runtimes, MCP, sessions, and routing with precision. Ready in a few calm, guided steps.</div>
+      <div class="progress"><div class="seg on"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div><div class="seg"></div></div>
+      <div class="card">
+        <div class="step"><div class="dot active">1</div><div><div class="stitle">Connect Shizuku <span class="opt">optional</span></div><div class="ssub">Unlock local runtime & native terminal. Skip anytime — core features stay available.</div></div></div>
+        <div class="step"><div class="dot todo">2</div><div><div class="stitle">Install runtime tools</div><div class="ssub mono">bottles · verified · managed</div></div></div>
+        <div class="step"><div class="dot todo">3</div><div><div class="stitle">Add your first provider</div><div class="ssub mono">keys · endpoints · models</div></div></div>
+        <div class="step"><div class="dot todo">4</div><div><div class="stitle">Routing ready</div><div class="ssub mono">proxy · local control</div></div></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="btn p"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>Begin setup</div>
+      <div class="btn s"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>Skip to dashboard</div>
+    </div>
+  </div>
+  <p class="note"><strong>O1 traits:</strong> ceremonial hero mark/glow, spacious premium pacing, confident copy; nerdy cues in mono step details/status language. Shizuku presented as optional with graceful skip.</p>
+</div>
+</body>
+</html>

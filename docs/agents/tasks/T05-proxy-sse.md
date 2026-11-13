@@ -1,6 +1,6 @@
 # T05 — Proxy SSE proof
 
-**Owner:** Core pod · **Depends on:** none (desktop core) · **Status:** Not started
+**Owner:** Core pod · **Depends on:** none (desktop core) · **Status:** Not started / unverified — no extracted proxy runtime evidenced in current app build/UI and no device-side SSE proof captured.
 
 ## Goal
 
@@ -20,13 +20,13 @@ through a protocol transform, bound to loopback with token + peer-UID checks.
 
 ## Acceptance criteria
 
-- [ ] `curl -N` through the proxy receives the first chunk < 500 ms and the stream completes.
-- [ ] Invalid/missing token → 401; token is never logged.
-- [ ] Peer UID check rejects a connection from a different app UID (test with `run-as`/helper).
-- [ ] Slow-client test: memory stays bounded (record RSS).
-- [ ] 100 concurrent streams for 10 minutes with no errors and no leaks.
-- [ ] Same tests pass on the desktop build and in Android CI.
+- [ ] `curl -N` through the proxy receives the first chunk < 500 ms and the stream completes. *(unverified)*
+- [ ] Invalid/missing token → 401; token is never logged. *(unverified)*
+- [ ] Peer UID check rejects a connection from a different app UID (test with `run-as`/helper). *(unverified)*
+- [ ] Slow-client test: memory stays bounded (record RSS). *(unverified)*
+- [ ] 100 concurrent streams for 10 minutes with no errors and no leaks. *(unverified)*
+- [ ] Same tests pass on the desktop build and in Android CI. *(unverified; no local Rust/JDK toolchain here to run suite)*
 
 ## Evidence
 
-curl transcript with timings, memory samples, concurrency report, and the test names in CI.
+- 2026-11-13 (device/env): `io.github.kingkaonix.aiaio.debug` on Motorola moto g play 2024 (Android 14/SDK 34) exposes no proxy controls/status in Phase 0 UI; core `:core` ping responds but no proxy listen/token/SSE behavior is observable from app or via vscreen. Proxy extraction/handlers/forwarder/streaming not evidenced as runnable in this environment. curl transcript/timings, auth/peer-UID checks, backpressure, concurrency/RSS, and CI test names to be added when implemented and testable.

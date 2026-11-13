@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Dashboard Directions (1)</title>
+<style>
+/* Dashboard direction explorations. Bluesminds-inspired defaults: dark, sleek sans, medium density, luxurious+nerdy.
+   Assumed tokens base: bg #06090f, surface #0b121c, raised #101926, border #1a2940, text #eaf2ff, muted #93a7c3,
+   accent #4cc9ff, accent2 #2f7cff, success #3ddc97, warn #ffcc66. Hex noted per direction accents. */
+*{box-sizing:border-box} body{margin:0;background:#04070c;color:#eaf2ff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.page{max-width:1300px;margin:0 auto;padding:24px 18px 40px}
+h1{margin:0 0 6px;font-size:26px;letter-spacing:-.02em} .lede{color:#93a7c3;margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:18px}
+.dir{background:#0a0f16;border:1px solid #182233;border-radius:16px;overflow:hidden}
+.meta{padding:14px;border-bottom:1px solid #182233}
+.meta h2{margin:0;font-size:16px}.meta p{margin:4px 0 0;color:#93a7c3;font-size:13px}
+.frame{padding:14px;display:flex;justify-content:center}
+.device{width:320px;height:640px;border-radius:28px;background:linear-gradient(180deg,#0b121c,#070b12);border:1px solid #223149;box-shadow:0 30px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.03) inset;position:relative;overflow:hidden}
+.notch{width:120px;height:18px;background:#05080d;border-radius:0 0 12px 12px;margin:0 auto}
+.screen{padding:12px}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#93a7c3}
+.brand{font-weight:650;color:#eaf2ff;letter-spacing:.02em}
+.badge{font-size:10px;padding:3px 7px;border-radius:999px;background:rgba(61,220,151,.12);color:#3ddc97;border:1px solid rgba(61,220,151,.25);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.card{background:#101926;border:1px solid #1a2940;border-radius:14px;padding:12px;margin-top:10px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.muted{color:#93a7c3}.big{font-size:22px;font-weight:650;letter-spacing:-.02em}
+.row{display:flex;gap:8px}.grow{flex:1}
+.stat{background:#0e1622;border:1px solid #1a2940;border-radius:10px;padding:8px}
+.k{font-size:10px;color:#8fa3bd;text-transform:uppercase;letter-spacing:.06em}.v{font-size:15px;font-weight:650;margin-top:2px}
+.cta{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.btn{padding:9px 8px;border-radius:10px;text-align:center;font-size:12px;font-weight:600}
+.primary{background:linear-gradient(90deg,#2f7cff,#4cc9ff);color:#041018}
+.ghost{background:#101926;border:1px solid #243650;color:#d7e6f8}
+.list .item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #162236;font-size:12px}
+.list .item:last-child{border-bottom:0}
+.glow{position:absolute;right:-60px;top:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(76,201,255,.22),rgba(76,201,255,0) 70%);filter:blur(2px)}
+/* D1 Command Hero: big status hero, spacious premium */
+.d1 .hero{background:linear-gradient(135deg,#0f1b2d 0%,#0b121c 55%,#091019 100%);border:1px solid #20324a;box-shadow:0 0 40px rgba(76,201,255,.08) inset}
+.d1 .ring{width:54px;height:54px;border-radius:50%;border:2px solid rgba(76,201,255,.5);display:flex;align-items:center;justify-content:center;box-shadow:0 0 18px rgba(76,201,255,.25)}
+/* D2 Telemetry Grid: denser nerdy readouts */
+.d2 .card{padding:10px} .d2 .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.d2 .strip{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:10px;padding:3px 6px;border-radius:6px;border:1px solid #223650;color:#bcd0e6;background:#0d1520;font-family:ui-monospace,monospace}
+/* D3 Luxe Panels: elegant layered cards, editorial */
+.d3 .hero{background:linear-gradient(180deg,#121a2a,#0c121c);border:1px solid #263754}
+.d3 .headline{font-size:20px;font-weight:600;letter-spacing:-.01em}
+.d3 .divider{height:1px;background:linear-gradient(90deg,rgba(76,201,255,.4),rgba(76,201,255,0));margin:10px 0}
+.assume{font-size:12px;color:#9fb3cc;background:#0b1420;border:1px solid #1c2a3d;border-radius:10px;padding:10px 12px;margin:0 0 16px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Dashboard — Design Directions (Phase A)</h1>
+  <p class="lede">Three visual personalities for the dashboard hero, same mission-control content. Bluesminds-inspired: dark, sleek sans, medium density, luxurious + nerdy. [ASSUMPTION defaults applied]</p>
+  <div class="assume"><strong>Assumed dashboard content:</strong> proxy/routing + runtime/Shizuku health, active provider/model, stats (requests, quota, latency/cost), quick actions (Switch Provider, Open Terminal / Start Proxy), recent sessions. Phone primary.</div>
+  <div class="grid">
+
+    <section class="dir d1">
+      <div class="meta"><h2>D1. Command Hero (Luxurious Calm)</h2><p>Big, confident status centerpiece with glow and spacious hierarchy. Premium Bluesminds-like hero; nerdy detail in mono subtext. Best for: “in control” at a glance.</p></div>
+      <div class="frame"><div class="device"><div class="glow"></div><div class="notch"></div><div class="screen">
+        <div class="top"><span class="brand">aiaio</span><span class="badge">LIVE</span></div>
+        <div class="card hero" style="margin-top:12px">
+          <div class="row" style="align-items:center">
+            <div class="grow"><div class="muted" style="font-size:11px">ROUTING STATUS</div><div class="big">Proxy Active</div><div class="mono muted" style="font-size:11px;margin-top:4px">openai/gpt-5 · 42ms · failover on</div></div>
+            <div class="ring"><div style="width:10px;height:10px;border-radius:50%;background:#3ddc97;box-shadow:0 0 12px #3ddc97"></div></div>
+          </div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="stat grow"><div class="k">Requests</div><div class="v">1,284</div></div>
+          <div class="stat grow"><div class="k">Quota</div><div class="v">72%</div></div>
+          <div class="stat grow"><div class="k">Cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="cta"><div class="btn primary">Switch Provider</div><div class="btn ghost">Open Terminal</div></div>
+        <div class="card list" style="margin-top:10px"><div class="muted" style="font-size:11px;margin-bottom:4px">RECENT SESSIONS</div>
+          <div class="item"><span>codex · refactor-api</span><span class="muted">2m</span></div>
+          <div class="item"><span>claude · ui-draft</span><span class="muted">18m</span></div>
+          <div class="item"><span>gemini · tests</span><span class="muted">1h</span></div>
+        </div>
+        <div class="mono muted" style="font-size:10px;margin-top:8px">Shizuku: connected · runtime 3/3 ready</div>
+      </div></div></div>
+    </section>
+
+    <section class="dir d2">
+      <div class="meta"><h2>D2. Telemetry Grid (Nerdy Control)</h2><p>Information-forward, instrument panel feel with crisp mono readouts and status chips. Medium-dense, precise. Best for: power users who want all signals visible.</p></div>
+      <div class="frame"><div class="device"><div class="notch"></div><div class="screen">
+        <div class="top"><span class="brand">aiaio <span class="mono muted" style="font-weight:500">/dashboard</span></span><span class="badge">SYS:OK</span></div>
+        <div class="card" style="margin-top:10px">
+          <div class="row" style="justify-content:space-between"><span class="muted" style="font-size:11px">PROXY</span><span class="mono" style="font-size:11px;color:#3ddc97">active · 127.0.0.1:8787</span></div>
+          <div style="margin-top:4px;font-weight:600">openai/gpt-5 <span class="muted" style="font-weight:500">via router</span></div>
+          <div class="strip"><span class="tag">shizuku:on</span><span class="tag">runtime:3/3</span><span class="tag">failover:on</span><span class="tag">p99 41ms</span></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">req today</div><div class="v mono">1284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v mono">72%</div></div>
+          <div class="stat"><div class="k">cost</div><div class="v mono">$4.20</div></div>
+          <div class="stat"><div class="k">sessions</div><div class="v mono">12</div></div>
+        </div>
+        <div class="cta"><div class="btn primary">Switch</div><div class="btn ghost">Terminal</div></div>
+        <div class="card list" style="margin-top:10px"><div class="muted mono" style="font-size:10px;margin-bottom:4px">RECENT.sessions</div>
+          <div class="item mono"><span>codex/refactor-api</span><span style="color:#3ddc97">ok · 2m</span></div>
+          <div class="item mono"><span>claude/ui-draft</span><span class="muted">idle · 18m</span></div>
+          <div class="item mono"><span>gemini/tests</span><span class="muted">done · 1h</span></div>
+        </div>
+      </div></div></div>
+    </section>
+
+    <section class="dir d3">
+      <div class="meta"><h2>D3. Luxe Panels (Elegant Hybrid)</h2><p>Refined layered panels and editorial hierarchy with selective telemetry. Balances luxurious calm and nerdy precision. Best for: premium feel without sacrificing signal.</p></div>
+      <div class="frame"><div class="device"><div class="glow" style="background:radial-gradient(circle,rgba(122,162,255,.18),rgba(122,162,255,0) 70%)"></div><div class="notch"></div><div class="screen">
+        <div class="top"><span class="brand">aiaio</span><span class="muted" style="font-size:11px">Evening overview</span></div>
+        <div class="card hero" style="margin-top:12px">
+          <div class="muted" style="font-size:11px">SYSTEM</div>
+          <div class="headline">Everything is running smoothly</div>
+          <div class="divider"></div>
+          <div class="row" style="font-size:12px"><span class="badge">Proxy active</span><span class="mono muted">openai/gpt-5 · 42ms</span></div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="stat grow"><div class="k">Quota used</div><div class="v">72%</div><div class="muted" style="font-size:11px">on track</div></div>
+          <div class="stat grow"><div class="k">Today</div><div class="v">$4.20</div><div class="muted" style="font-size:11px">1,284 req</div></div>
+        </div>
+        <div class="cta"><div class="btn primary">Switch Provider</div><div class="btn ghost">Terminal</div></div>
+        <div class="card" style="margin-top:10px"><div class="k">Runtime & sessions</div>
+          <div class="list" style="margin-top:4px">
+            <div class="item"><span>Shizuku · 3 tools ready</span><span style="color:#3ddc97">connected</span></div>
+            <div class="item"><span>codex · refactor-api</span><span class="muted">2m ago</span></div>
+          </div>
+        </div>
+      </div></div></div>
+    </section>
+
+  </div>
+  <p class="lede" style="margin-top:16px;font-size:13px">Pick D1/D2/D3, mix elements, or steer (more hero vs more telemetry, calmer vs denser, different accent from color themes).</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Color Themes v3 (Darker / Muted / Nerdy)</title>
+<style>
+/*
+  aiaio Color Themes v3 — feedback: "colors are still too loud".
+  Shift: much quieter accents (lower saturation & luminance), restrained glow, deeper neutral surfaces,
+  nerdy/tech retained via mono telemetry, grid texture, precise status readouts, instrument-like hierarchy.
+  Sleek sans UI chrome, medium density.
+
+  A Stealth Slate:  bg #010203 surface #06080c raised #0a0e14 border #151c27 text #d9e1ec muted #7f8ea3 accent #5f879e accent2 #4a6f8a ok #5e9c86 warn #b8a06a danger #b06a74
+  B Dim Phosphor:   bg #010202 surface #050807 raised #090e0b border #141d18 text #d6e0d9 muted #7c8f84 accent #5f8f73 accent2 #4f7a61 ok #5f8f73 warn #a9a46a danger #a86f6f
+  C Graphite Amber: bg #020202 surface #080706 raised #0e0c0a border #201b16 text #e0dbd4 muted #918779 accent #9a7a52 accent2 #7e6546 ok #6f9784 warn #b08d52 danger #a86f66
+  D Cold Mono:      bg #010203 surface #060709 raised #0a0c10 border #171b22 text #dde3ea muted #848e9c accent #748a9e accent2 #5f7386 ok #6c9486 warn #a99a6e danger #a77379
+*/
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#010203;color:#dde3ea;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 20px 48px}
+h1{font-size:28px;margin:0 0 6px;font-weight:650;letter-spacing:-.02em}
+.lede{color:#848e9c;margin:0 0 14px;max-width:860px}
+.note{font-size:13px;color:#a9b4c2;background:#06090d;border:1px solid #151c26;border-radius:10px;padding:10px 12px;margin-bottom:22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.theme{background:linear-gradient(180deg,#07090d,#040608);border:1px solid #151b24;border-radius:16px;overflow:hidden}
+.th-head{padding:14px 14px 10px;border-bottom:1px solid #131923}
+.th-name{font-weight:650;font-size:16px;margin:0}
+.th-tag{margin:3px 0 0;color:#848e9c;font-size:13px}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid #131923}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.07);color:#dde3ea}
+.snip{padding:14px}
+.phone{border-radius:18px;padding:12px;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden}
+.phone:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:18px 18px;opacity:.45;pointer-events:none}
+.phone:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.02),rgba(255,255,255,.02) 1px,transparent 1px,transparent 4px);opacity:.06;pointer-events:none}
+.inner{position:relative;z-index:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{font-size:10px;padding:3px 8px;border-radius:999px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;letter-spacing:.04em}
+.h{font-size:13px;font-weight:600;margin:10px 0 4px}
+.sub{font-size:12px;color:#848e9c}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{padding:8px;border-radius:10px}
+.k{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.v{font-size:15px;font-weight:650;margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:#e3e9f2}
+.v small{font-size:11px;font-weight:500;color:#848e9c}
+.bar{height:5px;border-radius:999px;margin-top:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.fill{height:100%;border-radius:999px}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;text-align:center;font-size:12px;font-weight:600;padding:8px 6px;border-radius:10px;border:1px solid transparent}
+.tele{margin-top:8px;font-size:10px;color:#748090;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;display:flex;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle}
+
+/* A Stealth Slate */
+.vA .phone{background:linear-gradient(180deg,#06080c,#010203);box-shadow:0 0 0 1px #151c27,0 20px 46px rgba(0,0,0,.75)}
+.vA .phone:before{background-image:linear-gradient(rgba(95,135,158,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.04) 1px,transparent 1px)}
+.vA .pill{background:rgba(94,156,134,.10);color:#7fb39d;border:1px solid rgba(94,156,134,.22)}
+.vA .stat{background:#0a0e14;border:1px solid #151c27}
+.vA .fill{background:linear-gradient(90deg,#4a6f8a,#5f879e)}
+.vA .btn.p{background:#17232e;color:#d7e6ef;border:1px solid #253848}
+.vA .btn.s{background:#0a0e14;color:#c8d5e2;border-color:#1a2432}
+.vA .accent{color:#7fa6bc}
+
+/* B Dim Phosphor */
+.vB .phone{background:linear-gradient(180deg,#050807,#010202);box-shadow:0 0 0 1px #141d18,0 20px 46px rgba(0,0,0,.75)}
+.vB .phone:before{background-image:linear-gradient(rgba(95,143,115,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(95,143,115,.04) 1px,transparent 1px)}
+.vB .pill{background:rgba(95,143,115,.10);color:#84b095;border:1px solid rgba(95,143,115,.22)}
+.vB .stat{background:#090e0b;border:1px solid #141d18}
+.vB .fill{background:linear-gradient(90deg,#4f7a61,#5f8f73)}
+.vB .btn.p{background:#122019;color:#d5e6dc;border:1px solid #22382d}
+.vB .btn.s{background:#090e0b;color:#c9d8d0;border-color:#18261f}
+.vB .accent{color:#84b095}
+
+/* C Graphite Amber */
+.vC .phone{background:linear-gradient(180deg,#080706,#020202);box-shadow:0 0 0 1px #201b16,0 20px 46px rgba(0,0,0,.78)}
+.vC .phone:before{background-image:linear-gradient(rgba(154,122,82,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(154,122,82,.035) 1px,transparent 1px)}
+.vC .pill{background:rgba(111,151,132,.10);color:#88b09d;border:1px solid rgba(111,151,132,.22)}
+.vC .stat{background:#0e0c0a;border:1px solid #201b16}
+.vC .fill{background:linear-gradient(90deg,#7e6546,#9a7a52)}
+.vC .btn.p{background:#211a13;color:#e6ddd1;border:1px solid #352a20}
+.vC .btn.s{background:#0e0c0a;color:#d8d1c8;border-color:#231e18}
+.vC .accent{color:#b8986e}
+
+/* D Cold Mono */
+.vD .phone{background:linear-gradient(180deg,#060709,#010203);box-shadow:0 0 0 1px #171b22,0 20px 46px rgba(0,0,0,.78)}
+.vD .phone:before{background-image:linear-gradient(rgba(116,138,158,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(116,138,158,.035) 1px,transparent 1px)}
+.vD .pill{background:rgba(108,148,134,.10);color:#86b09e;border:1px solid rgba(108,148,134,.22)}
+.vD .stat{background:#0a0c10;border:1px solid #171b22}
+.vD .fill{background:linear-gradient(90deg,#5f7386,#748a9e)}
+.vD .btn.p{background:#161d26;color:#dde6ef;border:1px solid #263241}
+.vD .btn.s{background:#0a0c10;color:#ced7e1;border-color:#1b212b}
+.vD .accent{color:#93a7ba}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>aiaio — Color Themes v3 (Muted / Nerdy)</h1>
+  <p class="lede">Quieter palette pass: much lower-saturation accents, restrained contrast and glow, deeper neutral blacks/grays. Nerdy/tech character kept through mono telemetry, grid texture, status readouts, and instrument-style hierarchy.</p>
+  <div class="note"><strong>Shift from v2:</strong> accents are now muted/steel-toned (no neon), buttons are subdued (no bright gradients), and surfaces stay very dark and neutral. Compare A–D for hue bias only; all are intentionally quiet.</div>
+
+  <div class="grid">
+    <section class="theme vA">
+      <div class="th-head"><p class="th-name">A. Stealth Slate</p><p class="th-tag">Muted steel-blue — quiet command console, precise and cold</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#010203">bg #010203</span>
+        <span class="chip" style="background:#06080c">surface #06080C</span>
+        <span class="chip" style="background:#151c27">border #151C27</span>
+        <span class="chip" style="background:#5f879e">accent #5F879E</span>
+        <span class="chip" style="background:#4a6f8a">accent-2 #4A6F8A</span>
+        <span class="chip" style="background:#5e9c86">ok #5E9C86</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ dashboard</span></div><span class="pill"><span class="dot" style="background:#5e9c86"></span>PROXY:LIVE</span></div>
+        <div class="h">Mission control <span class="accent">nominal</span></div>
+        <div class="sub">route <span class="v" style="font-size:11px">openai/gpt-5</span> · <span class="v" style="font-size:11px">42ms</span> · failover:on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req_24h</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>runtime:3/3</span><span>peer:verified</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Terminal</div></div>
+      </div></div></div>
+    </section>
+
+    <section class="theme vB">
+      <div class="th-head"><p class="th-name">B. Dim Phosphor</p><p class="th-tag">Muted sage/green — terminal hint, subdued and technical</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#010202">bg #010202</span>
+        <span class="chip" style="background:#050807">surface #050807</span>
+        <span class="chip" style="background:#141d18">border #141D18</span>
+        <span class="chip" style="background:#5f8f73">accent #5F8F73</span>
+        <span class="chip" style="background:#4f7a61">accent-2 #4F7A61</span>
+        <span class="chip" style="background:#a9a46a;color:#111">warn #A9A46A</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ ops</span></div><span class="pill"><span class="dot" style="background:#5f8f73"></span>SYS:ONLINE</span></div>
+        <div class="h">proxy.status = <span class="accent">active</span></div>
+        <div class="sub">127.0.0.1:8787 · token:ok · failover:on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">p99_ms</div><div class="v">41</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">tools</div><div class="v">03</div></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>bottles:3/3</span><span>sync:2m</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Terminal</div></div>
+      </div></div></div>
+    </section>
+
+    <section class="theme vC">
+      <div class="th-head"><p class="th-name">C. Graphite Amber</p><p class="th-tag">Muted amber/bronze — instrument panel, warm but restrained</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#020202">bg #020202</span>
+        <span class="chip" style="background:#080706">surface #080706</span>
+        <span class="chip" style="background:#201b16">border #201B16</span>
+        <span class="chip" style="background:#9a7a52">accent #9A7A52</span>
+        <span class="chip" style="background:#7e6546">accent-2 #7E6546</span>
+        <span class="chip" style="background:#6f9784">ok #6F9784</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ control</span></div><span class="pill"><span class="dot" style="background:#6f9784"></span>LINK:SECURE</span></div>
+        <div class="h">Router status <span class="accent">stable</span></div>
+        <div class="sub">provider <span class="v" style="font-size:11px">anthropic/claude</span> · map:active</div>
+        <div class="stats">
+          <div class="stat"><div class="k">alerts</div><div class="v">00</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">64<small>%</small></div><div class="bar"><div class="fill" style="width:64%"></div></div></div>
+          <div class="stat"><div class="k">latency</div><div class="v">38<small>ms</small></div></div>
+        </div>
+        <div class="tele"><span>runtime:ready</span><span>sessions:12</span><span>fgs:on</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Terminal</div></div>
+      </div></div></div>
+    </section>
+
+    <section class="theme vD">
+      <div class="th-head"><p class="th-name">D. Cold Mono</p><p class="th-tag">Near-monochrome — faint ice-steel accent, minimal color noise</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#010203">bg #010203</span>
+        <span class="chip" style="background:#060709">surface #060709</span>
+        <span class="chip" style="background:#171b22">border #171B22</span>
+        <span class="chip" style="background:#748a9e">accent #748A9E</span>
+        <span class="chip" style="background:#5f7386">accent-2 #5F7386</span>
+        <span class="chip" style="background:#6c9486">ok #6C9486</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ nexus</span></div><span class="pill"><span class="dot" style="background:#6c9486"></span>CORE:READY</span></div>
+        <div class="h">Systems aligned <span class="accent">stable</span></div>
+        <div class="sub">active <span class="v" style="font-size:11px">openai/gpt-5</span> · sessions:12</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="tele"><span>proxy:live</span><span>mcp:4</span><span>sync:ok</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Terminal</div></div>
+      </div></div></div>
+    </section>
+  </div>
+
+  <p class="lede" style="margin-top:16px;font-size:13px">React: pick A/B/C/D or mix (e.g. "D neutrals + B accent", "A but even less accent"). I can also mute further, warm/cool the grays, or reduce accent usage to status-only.</p>
+</div>
+</body>
+</html>

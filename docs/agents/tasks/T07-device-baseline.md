@@ -1,6 +1,6 @@
 # T07 — Device baseline bench
 
-**Owner:** Human + Android pod · **Depends on:** T01, T02 · **Status:** Not started
+**Owner:** Human + Android pod · **Depends on:** T01, T02 · **Status:** In progress (partial, environment-limited) — device identified and app observed; T01 dependency satisfied on this device, T02 still blocked; many metrics require adb/dumpsys/bench tooling not available via vscreen.
 
 ## Goal
 

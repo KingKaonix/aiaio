@@ -17,10 +17,11 @@ on:
       - "scripts/**"
       - ".github/workflows/android.yml"
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: android-${{ github.ref }}
-  cancel-in-progress: true
+  group: android-${{ github.workflow }}-${{ github.event_name == 'workflow_call' && github.run_id || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_call' }}
 
 env:
   RUST_TOOLCHAIN: "1.95"
@@ -54,7 +55,7 @@ jobs:
         run: cargo fmt --manifest-path core/Cargo.toml --all -- --check
 
   apk:
-    name: Debug APK (arm64-v8a + x86_64, 16 KB)
+    name: Android checks + debug APKs (arm64-v8a + x86_64, 16 KB)
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -135,14 +136,18 @@ jobs:
         with:
           gradle-version: "8.14.3"
 
-      - name: Unit tests
+      - name: Unit tests (all modules with debug tests)
         run: |
-          gradle -p android \
-            :terminal:testDebugUnitTest \
-            :sync:testDebugUnitTest \
-            :runtime:testDebugUnitTest \
-            :app:testGithubDebugUnitTest \
-            --stacktrace
+          set -euo pipefail
+          TASKS=":terminal:testDebugUnitTest :sync:testDebugUnitTest :runtime:testDebugUnitTest :app:testGithubDebugUnitTest"
+          if gradle -p android tasks --all --quiet | grep -q '^:core-service:testDebugUnitTest '; then
+            TASKS="$TASKS :core-service:testDebugUnitTest"
+          fi
+          if gradle -p android tasks --all --quiet | grep -q '^:app:testLibreDebugUnitTest '; then
+            TASKS="$TASKS :app:testLibreDebugUnitTest"
+          fi
+          echo "Running: $TASKS"
+          gradle -p android $TASKS --stacktrace
 
       - name: Assemble githubDebug APK
         env:
@@ -154,15 +159,15 @@ jobs:
           AIAIO_DEBUG_KEYSTORE: ${{ runner.temp }}/aiaio-debug.keystore
         run: gradle -p android :app:assembleLibreDebug --stacktrace
 
-      - name: Lint
-        run: gradle -p android :app:lintGithubDebug --stacktrace
+      - name: Lint (github + libre debug)
+        run: gradle -p android :app:lintGithubDebug :app:lintLibreDebug --stacktrace
 
-      - name: Verify 16 KB page compliance
+      - name: Verify 16 KB page compliance (both APKs)
         env:
           ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/${{ env.NDK_VERSION }}
         run: |
-          scripts/check-16kb.sh \
-            android/app/build/outputs/apk/github/debug/app-github-debug.apk
+          scripts/check-16kb.sh android/app/build/outputs/apk/github/debug/app-github-debug.apk
+          scripts/check-16kb.sh android/app/build/outputs/apk/libre/debug/app-libre-debug.apk
 
       - name: Record APK hashes
         run: |
@@ -181,3 +186,15 @@ jobs:
           path: |
             android/app/build/outputs/apk/github/debug/*.apk
             android/app/build/outputs/apk/libre/debug/*.apk
+
+      - name: Upload test and lint reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-lint-reports
+          if-no-files-found: warn
+          path: |
+            android/**/build/reports/tests/**
+            android/**/build/test-results/**
+            android/**/build/reports/lint-results*.*
+            android/**/build/reports/lint-results/**

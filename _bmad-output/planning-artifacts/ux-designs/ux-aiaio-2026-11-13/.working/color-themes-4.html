@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>aiaio — Color Theme v4 (A Stealth Slate refined)</title>
+<style>
+/*
+  aiaio Color Theme v4 — based on user pick: A Stealth Slate (v3) with tweaks.
+  Tweaks: tiniest bit brighter buttons; a little less corner rounding.
+  Palette (muted, nerdy/tech): 
+    bg #010203, surface #06080c, raised #0a0e14, border #151c27,
+    text #d9e1ec, muted #7f8ea3,
+    accent #5f879e, accent-2 #4a6f8a, ok #5e9c86, warn #b8a06a, danger #b06a74.
+  Button tweak (brighter vs v3): primary bg #1f3040 border #304a5e text #deebf5;
+    secondary bg #0d131a border #1f2c3b text #cdd9e6. Progress/fill slightly lifted.
+  Rounding tweak (less): cards/panels 12px, phone 14px, stats/buttons/inputs 8px, chips/pills keep rounded.
+*/
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#010203;color:#dde3ea;line-height:1.45}
+.wrap{max-width:900px;margin:0 auto;padding:28px 20px 48px}
+h1{font-size:28px;margin:0 0 6px;font-weight:650;letter-spacing:-.02em}
+.lede{color:#848e9c;margin:0 0 14px;max-width:860px}
+.note{font-size:13px;color:#a9b4c2;background:#06090d;border:1px solid #151c26;border-radius:8px;padding:10px 12px;margin-bottom:22px}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.theme{background:linear-gradient(180deg,#07090d,#040608);border:1px solid #151b24;border-radius:12px;overflow:hidden}
+.th-head{padding:14px 14px 10px;border-bottom:1px solid #131923}
+.th-name{font-weight:650;font-size:16px;margin:0}
+.th-tag{margin:3px 0 0;color:#848e9c;font-size:13px}
+.tokens{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid #131923}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.07);color:#dde3ea}
+.snip{padding:14px}
+.phone{border-radius:14px;padding:12px;border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden;background:linear-gradient(180deg,#06080c,#010203);box-shadow:0 0 0 1px #151c27,0 20px 46px rgba(0,0,0,.75)}
+.phone:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(95,135,158,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(95,135,158,.04) 1px,transparent 1px);background-size:18px 18px;opacity:.45;pointer-events:none}
+.phone:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.02),rgba(255,255,255,.02) 1px,transparent 1px,transparent 4px);opacity:.06;pointer-events:none}
+.inner{position:relative;z-index:1}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pill{font-size:10px;padding:3px 8px;border-radius:999px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;letter-spacing:.04em;background:rgba(94,156,134,.10);color:#7fb39d;border:1px solid rgba(94,156,134,.22)}
+.h{font-size:13px;font-weight:600;margin:10px 0 4px}
+.sub{font-size:12px;color:#848e9c}
+.accent{color:#7fa6bc}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.stat{padding:8px;border-radius:8px;background:#0a0e14;border:1px solid #151c27}
+.k{font-size:10px;color:#748090;text-transform:uppercase;letter-spacing:.08em;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+.v{font-size:15px;font-weight:650;margin-top:2px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:#e3e9f2}
+.v small{font-size:11px;font-weight:500;color:#848e9c}
+.bar{height:5px;border-radius:999px;margin-top:6px;background:rgba(255,255,255,.05);overflow:hidden}
+.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#547c95,#6d97ad)}
+.actions{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;text-align:center;font-size:12px;font-weight:600;padding:8px 6px;border-radius:8px;border:1px solid transparent}
+.btn.p{background:#1f3040;color:#deebf5;border:1px solid #304a5e}
+.btn.s{background:#0d131a;color:#cdd9e6;border:1px solid #1f2c3b}
+.tele{margin-top:8px;font-size:10px;color:#748090;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;display:flex;gap:10px;flex-wrap:wrap}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:5px;vertical-align:middle;background:#5e9c86}
+.list{margin-top:10px;background:#0a0e14;border:1px solid #151c27;border-radius:8px;padding:8px 10px}
+.item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #131a24;font-size:11px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.item:last-child{border-bottom:0}
+.ok{color:#7fb39d} .muted{color:#748090}
+/* reference (v3 values) */
+.ref .btn.p{background:#17232e;color:#d7e6ef;border:1px solid #253848}
+.ref .btn.s{background:#0a0e14;color:#c8d5e2;border-color:#1a2432}
+.ref .fill{background:linear-gradient(90deg,#4a6f8a,#5f879e)}
+.ref .theme,.ref.theme{border-radius:16px}
+.ref .phone{border-radius:18px}
+.ref .stat,.ref .btn,.ref .list{border-radius:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>aiaio — Theme A refined (v4)</h1>
+  <p class="lede">Stealth Slate base (muted, dark, nerdy/tech) with your tweaks applied: slightly brighter buttons and a little less corner rounding. Compare refined vs v3 reference.</p>
+  <div class="note"><strong>Changes:</strong> Buttons lifted subtly for clarity (<code>primary #1F3040/#304A5E</code>, <code>secondary #0D131A/#1F2C3B</code>) and fill brightened a touch. Corner radii reduced (panels 12px, phone 14px, stats/buttons/lists 8px; pills remain rounded). Palette unchanged.</div>
+
+  <div class="compare">
+    <section class="theme">
+      <div class="th-head"><p class="th-name">A. Stealth Slate — refined (v4)</p><p class="th-tag">Muted steel-blue, darker/nerdy, clearer actions, crisper corners</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#010203">bg #010203</span>
+        <span class="chip" style="background:#06080c">surface #06080C</span>
+        <span class="chip" style="background:#151c27">border #151C27</span>
+        <span class="chip" style="background:#5f879e">accent #5F879E</span>
+        <span class="chip" style="background:#5e9c86">ok #5E9C86</span>
+        <span class="chip" style="background:#1f3040">btn #1F3040</span>
+      </div>
+      <div class="snip"><div class="phone"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ dashboard</span></div><span class="pill"><span class="dot"></span>PROXY:LIVE</span></div>
+        <div class="h">Mission control <span class="accent">nominal</span></div>
+        <div class="sub">route <span class="v" style="font-size:11px">openai/gpt-5</span> · <span class="v" style="font-size:11px">42ms</span> · failover:on</div>
+        <div class="stats">
+          <div class="stat"><div class="k">req_24h</div><div class="v">1,284</div></div>
+          <div class="stat"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="list">
+          <div class="item"><span>codex/refactor-api</span><span class="ok">ok · 2m</span></div>
+          <div class="item"><span>claude/ui-draft</span><span class="muted">idle · 18m</span></div>
+          <div class="item"><span>runtime/shizuku</span><span class="ok">3/3 ready</span></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>peer:verified</span><span>sync:2m</span></div>
+        <div class="actions"><div class="btn p">Switch provider</div><div class="btn s">Terminal</div></div>
+      </div></div></div>
+    </section>
+
+    <section class="theme ref" style="border-radius:16px">
+      <div class="th-head"><p class="th-name">A. Stealth Slate — v3 reference</p><p class="th-tag">Previous (dimmer buttons, rounder corners)</p></div>
+      <div class="tokens">
+        <span class="chip" style="background:#17232e">btn #17232E</span>
+        <span class="chip" style="background:#253848">btn-border #253848</span>
+        <span class="chip" style="background:#0a0e14">radii 10/16/18</span>
+      </div>
+      <div class="snip"><div class="phone" style="border-radius:18px"><div class="inner">
+        <div class="row"><div style="font-weight:650">aiaio <span class="sub">/ dashboard</span></div><span class="pill"><span class="dot"></span>PROXY:LIVE</span></div>
+        <div class="h">Mission control <span class="accent">nominal</span></div>
+        <div class="sub">route <span class="v" style="font-size:11px">openai/gpt-5</span> · <span class="v" style="font-size:11px">42ms</span> · failover:on</div>
+        <div class="stats">
+          <div class="stat" style="border-radius:10px"><div class="k">req_24h</div><div class="v">1,284</div></div>
+          <div class="stat" style="border-radius:10px"><div class="k">quota</div><div class="v">72<small>%</small></div><div class="bar"><div class="fill" style="width:72%"></div></div></div>
+          <div class="stat" style="border-radius:10px"><div class="k">cost</div><div class="v">$4.20</div></div>
+        </div>
+        <div class="list" style="border-radius:10px">
+          <div class="item"><span>codex/refactor-api</span><span class="ok">ok · 2m</span></div>
+          <div class="item"><span>claude/ui-draft</span><span class="muted">idle · 18m</span></div>
+          <div class="item"><span>runtime/shizuku</span><span class="ok">3/3 ready</span></div>
+        </div>
+        <div class="tele"><span>shizuku:connected</span><span>peer:verified</span><span>sync:2m</span></div>
+        <div class="actions"><div class="btn p" style="border-radius:10px">Switch provider</div><div class="btn s" style="border-radius:10px">Terminal</div></div>
+      </div></div></div>
+    </section>
+  </div>
+
+  <p class="lede" style="margin-top:16px;font-size:13px">If this feels right, I’ll apply Stealth Slate v4 to updated Dashboard and Onboarding direction explorations (and then Phase B key-screen mocks). Tell me if buttons need a touch more/less lift or corners tighter/softer.</p>
+</div>
+</body>
+</html>
