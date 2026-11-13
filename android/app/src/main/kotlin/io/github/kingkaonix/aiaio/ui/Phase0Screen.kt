@@ -29,9 +29,13 @@ import io.github.kingkaonix.aiaio.BuildConfig
 import io.github.kingkaonix.aiaio.R
 import io.github.kingkaonix.aiaio.SoakService
 import io.github.kingkaonix.aiaio.core.CoreClient
+import io.github.kingkaonix.aiaio.runtime.RuntimeFileBridge
 import io.github.kingkaonix.aiaio.runtime.RuntimeManager
 import io.github.kingkaonix.aiaio.runtime.RuntimePaths
 import io.github.kingkaonix.aiaio.Soak
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -59,6 +63,8 @@ fun Phase0Screen() {
     var probeRunning by remember { mutableStateOf(false) }
     var soakResult by remember { mutableStateOf<String?>(null) }
     var soakRunning by remember { mutableStateOf(false) }
+    var t03Result by remember { mutableStateOf<String?>(null) }
+    var t03Running by remember { mutableStateOf(false) }
 
     DisposableEffect(coreClient) {
         coreClient.bind()
@@ -202,8 +208,29 @@ fun Phase0Screen() {
 
         soakResult?.let { StatusCard(title = stringResource(R.string.soak_result), value = it) }
 
+        Button(
+            enabled = !t03Running,
+            onClick = {
+                t03Running = true
+                t03Result = "running…"
+                scope.launch {
+                    t03Result = try {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            runT03Probe(runtimeManager)
+                        }
+                    } finally {
+                        t03Running = false
+                    }
+                }
+            },
+        ) {
+            Text("Run T03 file bridge probe")
+        }
+
+        t03Result?.let { StatusCard(title = "T03 result", value = it) }
+
         Text(
-            text = "Next gate: T01 (execute a program in /data/local/tmp/aiaio as shell UID).",
+            text = "Next gate: T01/T03 evidence on device (CI-built APK).",
             style = MaterialTheme.typography.bodySmall,
         )
         Text(
@@ -308,5 +335,78 @@ private fun StatusCard(title: String, value: String) {
                 fontFamily = FontFamily.Monospace,
             )
         }
+    }
+}
+
+
+private fun runT03Probe(manager: RuntimeManager): String = buildString {
+    runCatching {
+        appendLine(awaitService(manager) ?: "service: ok")
+        val bridge = RuntimeFileBridge(manager)
+        val base = "${RuntimePaths.ROOT}/probe/t03"
+        val settings = "$base/.claude/settings.json"
+
+        bridge.mkdirs("$base/.claude").getOrThrow()
+
+        val payload = "{\"schema\":1,\"name\":\"aiaio\",\"nested\":{\"ok\":true}}\n"
+        val bytes = payload.toByteArray(Charsets.UTF_8)
+        val w = bridge.writeAtomic(settings, bytes, 0x180).getOrThrow()
+        appendLine("writeAtomic: code=${w.optInt("code")} bytes=${w.optInt("bytes")} mode=${w.optInt("mode")} path=${w.optString("path")}")
+
+        val read = bridge.read(settings).getOrThrow().toString(Charsets.UTF_8)
+        appendLine("roundTrip: ${if (read == payload) "ok" else "MISMATCH len=${read.length}"}")
+
+        val st = bridge.stat(settings).getOrThrow()
+        appendLine("stat: exists=${st.optBoolean("exists")} isFile=${st.optBoolean("isFile")} len=${st.optLong("len")} mode=${st.optInt("mode")}")
+
+        val listed = bridge.listDir("$base/.claude").getOrThrow()
+        appendLine("listDir: entries=${listed.optJSONArray("entries")?.length() ?: -1}")
+
+        val renamed = "$base/.claude/settings.renamed.json"
+        bridge.rename(settings, renamed).getOrThrow()
+        val stRenamed = bridge.stat(renamed).getOrThrow()
+        appendLine("rename: ok exists=${stRenamed.optBoolean("exists")}")
+        bridge.rename(renamed, settings).getOrThrow()
+
+        bridge.remove(settings).getOrThrow()
+        val restored = bridge.restoreBackup(settings).getOrThrow()
+        val restoredText = bridge.read(settings).getOrThrow().toString(Charsets.UTF_8)
+        appendLine("restoreBackup: restored=${restored.optBoolean("restored")} roundTrip=${if (restoredText == payload) "ok" else "MISMATCH"}")
+
+        val escaped = manager.readFile("${RuntimePaths.ROOT}/../etc/hosts")
+        val escJson = runCatching { JSONObject(escaped) }.getOrNull()
+        appendLine("escapeRejected: code=${escJson?.optInt("code")} err=${escJson?.optString("error")?.take(80)}")
+
+        val concurrentPath = "$base/.claude/concurrent.json"
+        val workers = 24
+        val pool = Executors.newFixedThreadPool(8)
+        val start = CountDownLatch(1)
+        val done = CountDownLatch(workers)
+        val payloads = (0 until workers).map { i -> "{\"i\":$i,\"pad\":\"${"x".repeat(32)}\"}\n".toByteArray(Charsets.UTF_8) }
+        val failures = java.util.concurrent.ConcurrentLinkedQueue<String>()
+        for (i in 0 until workers) {
+            val p = payloads[i]
+            pool.execute {
+                try {
+                    start.await(5, TimeUnit.SECONDS)
+                    bridge.writeAtomic(concurrentPath, p, 0x180).getOrThrow()
+                } catch (t: Throwable) {
+                    failures.add("${i}:${t.message}")
+                } finally {
+                    done.countDown()
+                }
+            }
+        }
+        start.countDown()
+        done.await(30, TimeUnit.SECONDS)
+        pool.shutdown()
+        val finalBytes = bridge.read(concurrentPath).getOrNull()
+        val matched = if (finalBytes == null) -1 else payloads.indexOfFirst { it.contentEquals(finalBytes) }
+        appendLine("concurrent: workers=$workers failures=${failures.size} matchedPayload=$matched len=${finalBytes?.size ?: -1}")
+        if (failures.isNotEmpty()) appendLine("concurrentFailures: ${failures.take(3).joinToString(" | ")}")
+
+        appendLine("T03 probe complete (device kill-test/30-min soak not included)")
+    }.onFailure { t ->
+        appendLine("T03 probe failed: ${t.javaClass.simpleName}: ${t.message}")
     }
 }

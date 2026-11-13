@@ -24,6 +24,34 @@ class RuntimeUserService : IRuntimeService.Stub() {
         RuntimeFiles.writeFile(path.orEmpty(), data ?: ByteArray(0), mode)
     }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
 
+    override fun readFile(path: String?): String = runCatching {
+        RuntimeFiles.readFile(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun stat(path: String?): String = runCatching {
+        RuntimeFiles.stat(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun listDir(path: String?): String = runCatching {
+        RuntimeFiles.listDir(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun rename(from: String?, to: String?): String = runCatching {
+        RuntimeFiles.rename(from.orEmpty(), to.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun remove(path: String?): String = runCatching {
+        RuntimeFiles.remove(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun restoreBackup(path: String?): String = runCatching {
+        RuntimeFiles.restoreBackup(path.orEmpty())
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
+    override fun writeFileAtomic(path: String?, data: ByteArray?, mode: Int): String = runCatching {
+        RuntimeFiles.writeFileAtomic(path.orEmpty(), data ?: ByteArray(0), mode)
+    }.getOrElse { RuntimeResult.error(it.message ?: it.javaClass.name) }
+
     override fun exec(argv: Array<out String>?, cwd: String?): String =
         ShellRunner.run(argv?.map { it.orEmpty() }?.toTypedArray() ?: emptyArray(), cwd.orEmpty())
 }

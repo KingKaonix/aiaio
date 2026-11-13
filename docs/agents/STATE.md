@@ -11,7 +11,7 @@ Spec: `_bmad-output/specs/spec-aiaio-completion/` (SPEC, issues, completion-plan
 |---|---|---|---|
 | T01 | Shizuku exec probe | Runtime | Done (device-evidenced 2026-11-13) — probe previously green; 30-min foreground-service soak verified via in-app log (`ticks=30/30`, `uid=2000`, 12:04:33–12:34:52, `soak complete`) on Motorola moto g play 2024 / Android 14 (SDK 34), `io.github.kingkaonix.aiaio.debug`; evidence `docs/agents/evidence/T01-soak-complete-2026-11-13.jpg` (+ prior). Failure-mode UI not exhaustively re-verified. |
 | T02 | Bottle install proof | Runtime | Blocked / unverified — no `aiaio-runtime` assets, no signed manifest/test bottle, no install flow in current build; rights/signing unknown (cannot execute proof) |
-| T03 | Config round-trip proof | Core | In progress (device-blocked) — core `FileBridge`/`fs.*` + tests exist; `IRuntimeService` lacks read/stat/list/rename/remove and no device adapter/harness, so on-device round-trip/kill-test unverified |
+| T03 | Config round-trip proof | Core | In progress (implementation added, device proof pending) — core `FileBridge`/`fs.*` + tests exist; Android runtime bridge extended (AIDL v3 read/stat/list/rename/remove/restore/atomic write, service+`RuntimeFileBridge`, Phase 0 T03 probe harness), but on-device round-trip/kill-test/concurrency evidence not yet collected |
 | T04 | PTY proof | Terminal | Not started / unverified — no `forkpty`/PTY fd AIDL or terminal UI in current build; implementation required before device proof |
 | T05 | Proxy SSE proof | Core | Not started / unverified — no proxy runtime/controls observable in current build; core/desktop tests and implementation+device evidence required |
 | T06 | Build + 16 KB proof | Android | Done (CI) + device launch observed 2026-11-13 on Motorola moto g play 2024 (Android 14/SDK 34), debug `0.1.0-debug` Phase 0; artifact hashes/alignment not re-attached this session |
@@ -44,7 +44,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
 ## Next 5 actions
 
 1. **CI/tooling:** run and keep green `ci-tooling` on GitHub Actions for pushed changes (APK/report artifacts, hashes, parity) to validate the built toolchain.
-2. **T03:** implement Android/Shizuku `FileBridge` adapter (extend `IRuntimeService` + version) and a device-test harness for byte-identical round trip, traversal rejection, mode 0600, concurrency, backup restore, and kill-test; then capture evidence.
+2. **T03:** collect device evidence on CI-built debug APK using Phase 0 T03 probe (round trip/stat/list/rename/restore, traversal rejection, concurrent atomic writes) and add explicit kill-test + full fixture/100-write logs; wire Rust core `fs.*` dispatch to Android runtime bridge if needed for end-to-end core path.
 3. **T04:** implement PTY path (native helper + `forkpty` in Shizuku service, master fd via `ParcelFileDescriptor`, terminal UI wiring) and run interactive/resize/Unicode/signal/30-min stability checks on device.
 4. **T05:** extract minimal proxy slice into core, add loopback+token+peer-UID+SSE/mock-transform tests (CI/desktop), then prove on device build with streamed request evidence.
 5. **T02/T07 + runtime readiness:** define/publish test bottle + signed manifest (resolve `aiaio-runtime` repo, signing, redistribution rights) for T02 install/update/rollback proof; collect T07 metrics with proper bench/shell tooling (adb/dumpsys/Macrobenchmark) when available. Keep T08 review-ready for pivot; revisit T09 go/no-go as evidence lands.
@@ -52,7 +52,7 @@ Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
 ## Blockers
 
 - **P0 go/no-go not closable:** T01/T06 evidenced (2026-11-13 refresh/launch), but T02 (artifacts/rights), T03 (device adapter+harness), T04 (PTY implementation), T05 (proxy implementation+tests/device evidence), T07 (bench tooling access) remain incomplete.
-- **Implementation gaps on current build:** no bottle install flow, no PTY/terminal session, no exposed proxy runtime, and runtime AIDL lacks file ops needed for device `FileBridge` proof.
+- **Implementation gaps on current build:** no bottle install flow, no PTY/terminal session, no exposed proxy runtime; runtime file-bridge AIDL/adapter/harness landed in repo but on-device T03 proof/evidence still pending on CI APK.
 - **Environment/tooling limits:** no local JDK/Android SDK and no `cargo` detected here (CI needed for builds/tests); vscreen provides UI evidence but not adb/dumpsys/Macrobenchmark, limiting T07 and low-level PTY/proxy diagnostics.
 - **`aiaio-runtime` repo/manifest/signing/rights unknown:** blocks publishable/test bottle pipeline and T02 completion as specified.
 

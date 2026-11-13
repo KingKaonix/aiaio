@@ -30,7 +30,7 @@ class RuntimeManager(private val context: Context) {
             .debuggable(BuildConfig.DEBUG)
             // Bump whenever IRuntimeService changes: Shizuku restarts a user service whose
             // version differs from the running one, which keeps binder transactions in sync.
-            .version(2)
+            .version(3)
     }
 
     private val connection = object : ServiceConnection {
@@ -74,6 +74,27 @@ class RuntimeManager(private val context: Context) {
     /** Writes [bytes] to [path] with the given Unix [mode] (e.g. 0x1C0 = 0700). */
     fun writeFile(path: String, bytes: ByteArray, mode: Int = 0x1C0): String =
         call("runtime service is not bound") { it.writeFile(path, bytes, mode) }
+
+    fun readFile(path: String): String =
+        call("runtime service is not bound") { it.readFile(path) }
+
+    fun stat(path: String): String =
+        call("runtime service is not bound") { it.stat(path) }
+
+    fun listDir(path: String): String =
+        call("runtime service is not bound") { it.listDir(path) }
+
+    fun rename(from: String, to: String): String =
+        call("runtime service is not bound") { it.rename(from, to) }
+
+    fun remove(path: String): String =
+        call("runtime service is not bound") { it.remove(path) }
+
+    fun restoreBackup(path: String): String =
+        call("runtime service is not bound") { it.restoreBackup(path) }
+
+    fun writeFileAtomic(path: String, bytes: ByteArray, mode: Int = 0x180): String =
+        call("runtime service is not bound") { it.writeFileAtomic(path, bytes, mode) }
 
     private inline fun call(
         unboundMessage: String,
