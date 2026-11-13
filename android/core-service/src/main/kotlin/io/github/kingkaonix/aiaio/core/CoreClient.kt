@@ -17,6 +17,7 @@ class CoreClient(context: Context) {
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            runCatching { CoreBridge.attachRuntime(appContext) }
             remote.set(ICoreService.Stub.asInterface(service))
         }
 

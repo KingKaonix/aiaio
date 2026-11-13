@@ -31,5 +31,6 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(project(":runtime"))
     testImplementation(libs.junit)
 }
