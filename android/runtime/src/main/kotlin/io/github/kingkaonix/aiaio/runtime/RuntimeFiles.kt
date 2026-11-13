@@ -137,10 +137,13 @@ internal object RuntimeFiles {
         var temp: File? = null
         try {
             temp = File(file.parentFile, "$TEMP_PREFIX${UUID.randomUUID()}")
-            temp.writeBytes(data)
-            try {
-                temp.outputStream().fd.sync()
-            } catch (_: Throwable) {
+            java.io.FileOutputStream(temp).use { out ->
+                out.write(data)
+                out.flush()
+                try {
+                    out.fd.sync()
+                } catch (_: Throwable) {
+                }
             }
             Files.setPosixFilePermissions(temp.toPath(), permissions(mode))
 
