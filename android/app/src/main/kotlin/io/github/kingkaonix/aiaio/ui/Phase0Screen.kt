@@ -339,7 +339,7 @@ private fun StatusCard(title: String, value: String) {
 }
 
 
-private fun runT03Probe(manager: RuntimeManager): String = buildString {
+private suspend fun runT03Probe(manager: RuntimeManager): String = buildString {
     runCatching {
         appendLine(awaitService(manager) ?: "service: ok")
         val bridge = RuntimeFileBridge(manager)
