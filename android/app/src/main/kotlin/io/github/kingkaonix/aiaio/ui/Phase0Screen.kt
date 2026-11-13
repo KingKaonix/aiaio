@@ -65,6 +65,8 @@ fun Phase0Screen() {
     var soakRunning by remember { mutableStateOf(false) }
     var t03Result by remember { mutableStateOf<String?>(null) }
     var t03Running by remember { mutableStateOf(false) }
+    var t03Log by remember { mutableStateOf<String?>(null) }
+    var t03LogRunning by remember { mutableStateOf(false) }
 
     DisposableEffect(coreClient) {
         coreClient.bind()
@@ -228,6 +230,26 @@ fun Phase0Screen() {
         }
 
         t03Result?.let { StatusCard(title = "T03 result", value = it) }
+
+        Button(
+            enabled = !t03LogRunning,
+            onClick = {
+                t03LogRunning = true
+                scope.launch {
+                    t03Log = try {
+                        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                            readT03ResultFile(runtimeManager)
+                        }
+                    } finally {
+                        t03LogRunning = false
+                    }
+                }
+            },
+        ) {
+            Text("Read T03 result file")
+        }
+
+        t03Log?.let { StatusCard(title = "T03 full log", value = it) }
 
         Text(
             text = "Next gate: T01/T03 evidence on device (CI-built APK).",
@@ -424,8 +446,31 @@ private suspend fun runT03Probe(manager: RuntimeManager): String = buildString {
         appendLine("concurrent: w=$workers fail=${failures.size} match=$matched complete=${matched >= 0} len=${finalBytes?.size ?: -1}")
         if (failures.isNotEmpty()) appendLine("cFail: ${failures.take(2).joinToString("|")}")
 
-        appendLine("T03 ok (kill-test manual)")
+        appendLine("T03 ok (atomic rename+fsync+verify; kill-test manual)")
     } catch (t: Throwable) {
         appendLine("T03 fail[$step]: ${t.javaClass.simpleName}:${t.message?.take(120)}")
     }
+}.also { result ->
+    runCatching {
+        val bridge = RuntimeFileBridge(manager)
+        val outPath = "${RuntimePaths.ROOT}/probe/t03/t03-result.txt"
+        bridge.mkdirs("${RuntimePaths.ROOT}/probe/t03")
+        bridge.writeAtomic(outPath, result.toByteArray(Charsets.UTF_8), 0x180)
+    }
+}
+
+private suspend fun readT03ResultFile(manager: RuntimeManager): String {
+    awaitService(manager)?.let { return it }
+    val path = "${RuntimePaths.ROOT}/probe/t03/t03-result.txt"
+    val result = manager.readFile(path)
+    return runCatching {
+        val json = JSONObject(result)
+        val code = json.optInt("code", Int.MIN_VALUE)
+        if (code != 0) {
+            "read failed: $result"
+        } else {
+            val b64 = json.optString("data")
+            String(android.util.Base64.decode(b64, android.util.Base64.DEFAULT), Charsets.UTF_8)
+        }
+    }.getOrElse { "read failed: $result" }
 }
