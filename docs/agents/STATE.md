@@ -11,7 +11,7 @@ Spec: `_bmad-output/specs/spec-aiaio-completion/` (SPEC, issues, completion-plan
 |---|---|---|---|
 | T01 | Shizuku exec probe | Runtime | Done (device-evidenced 2026-11-13) — probe previously green; 30-min foreground-service soak verified via in-app log (`ticks=30/30`, `uid=2000`, 12:04:33–12:34:52, `soak complete`) on Motorola moto g play 2024 / Android 14 (SDK 34), `io.github.kingkaonix.aiaio.debug`; evidence `docs/agents/evidence/T01-soak-complete-2026-11-13.jpg` (+ prior). Failure-mode UI not exhaustively re-verified. |
 | T02 | Bottle install proof | Runtime | Blocked / unverified — no `aiaio-runtime` assets, no signed manifest/test bottle, no install flow in current build; rights/signing unknown (cannot execute proof) |
-| T03 | Config round-trip proof | Core | In progress (wired, CI green, device probed-fail) — runtime bridge + core-service `fs.*` wiring + T03 probe landed (`2461837d`,`9b294adf`,`8f7bfe34`,`91340c1e`, CI 43503506432/43513148814 green); device probe (2026-11-13) fails at `fixture:settings.json` with `IllegalStateException: verification failed` after mkdirs ok. Fix (flush/sync write stream) pending CI/install/retest; full acceptance evidence still pending |
+| T03 | Config round-trip proof | Core | In progress (wired, CI green, device probed-pass for covered steps) — runtime bridge + core-service `fs.*` wiring/probe landed (`2461837d`,`9b294adf`,`8f7bfe34`,`91340c1e`,`cbba77d6`, CI 43503506432/43513148814/43514905341 green). On-device probe (2026-11-13, `cbba77d6` github debug APK) passed visible steps: JSON/JSONC/TOML/YAML fixtures ok, `listDir`/rename/restore ok, traversal rejected; concurrency exercised by probe but full text/log artifact and mid-write kill-test evidence still pending |
 | T04 | PTY proof | Terminal | Not started / unverified — no `forkpty`/PTY fd AIDL or terminal UI in current build; implementation required before device proof |
 | T05 | Proxy SSE proof | Core | Not started / unverified — no proxy runtime/controls observable in current build; core/desktop tests and implementation+device evidence required |
 | T06 | Build + 16 KB proof | Android | Done (CI) + device launch observed 2026-11-13 on Motorola moto g play 2024 (Android 14/SDK 34), debug `0.1.0-debug` Phase 0; artifact hashes/alignment not re-attached this session |
@@ -22,7 +22,7 @@ Spec: `_bmad-output/specs/spec-aiaio-completion/` (SPEC, issues, completion-plan
 ## Go/no-go (T09, recorded 2026-11-13)
 
 - **Decision:** Self-contained path **NO-GO for closure / not closable at this time**. Proceed with remediation; do not claim self-contained viability complete.
-- **Basis:** T01 Shizuku exec+30-min soak evidenced pass on device; T06 CI green + device launch observed; T07 partial baseline only. T02 blocked (runtime repo/manifest/test bottle + rights/signing unknown). T03/T04/T05 require implementation and/or device evidence (file-bridge adapter/harness, PTY plumbing+UI, proxy slice/tests/runtime). Evidence/tooling gaps remain (artifact hashes/alignment, adb/dumpsys/bench metrics).
+- **Basis:** T01 Shizuku exec+30-min soak evidenced pass on device; T06 CI green + device launch observed; T07 partial baseline only. T03 device probe now passes covered file-bridge steps on CI-built `cbba77d6` (fixtures/list/rename/restore/traversal; concurrency exercised) but full probe log and mid-write kill-test evidence pending. T02 blocked (runtime repo/manifest/test bottle + rights/signing unknown). T04/T05 require implementation and/or device evidence (PTY plumbing+UI, proxy slice/tests/runtime). Evidence/tooling gaps remain (artifact hashes/alignment for all installed builds, adb/dumpsys/bench metrics).
 - **Kill criteria:** No demonstrated P0 exec/Shizuku proof failure (T01 passed). Incompleteness is not a proven non-viability trigger → **full Companion-mode activation NOT triggered**. T08 fallback scope remains review-ready for evidence-backed pivot if future proofs show non-viability.
 
 Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
@@ -43,11 +43,11 @@ Status values: `Not started`, `In progress`, `Blocked`, `Unverified`, `Done`.
 
 ## Next 5 actions
 
-1. **CI/tooling:** run and keep green `ci-tooling` on GitHub Actions for pushed changes (APK/report artifacts, hashes, parity) to validate the built toolchain.
-2. **T03:** collect device evidence on CI-built debug APK using Phase 0 T03 probe (round trip/stat/list/rename/restore, traversal rejection, concurrent atomic writes) and add explicit kill-test + full fixture/100-write logs; wire Rust core `fs.*` dispatch to Android runtime bridge if needed for end-to-end core path.
-3. **T04:** implement PTY path (native helper + `forkpty` in Shizuku service, master fd via `ParcelFileDescriptor`, terminal UI wiring) and run interactive/resize/Unicode/signal/30-min stability checks on device.
-4. **T05:** extract minimal proxy slice into core, add loopback+token+peer-UID+SSE/mock-transform tests (CI/desktop), then prove on device build with streamed request evidence.
-5. **T02/T07 + runtime readiness:** define/publish test bottle + signed manifest (resolve `aiaio-runtime` repo, signing, redistribution rights) for T02 install/update/rollback proof; collect T07 metrics with proper bench/shell tooling (adb/dumpsys/Macrobenchmark) when available. Keep T08 review-ready for pivot; revisit T09 go/no-go as evidence lands.
+1. **T03 closeout evidence:** capture full probe output/log (incl. per-fixture mode/len and `concurrent: w=100 fail=0 match>=0 complete=true`) and perform/document mid-write kill-test (original file intact) to satisfy acceptance criteria; then mark T03 done.
+2. **T04:** implement PTY path (native helper + `forkpty` in Shizuku service, master fd via `ParcelFileDescriptor` over Binder, app reader/writer/resize/signal wiring, terminal UI/session) and run interactive/resize/Unicode/signal/30-min stability + cleanup checks on device.
+3. **T05:** extract minimal proxy slice into core, add loopback+token+peer-UID+SSE/mock-transform tests (CI/desktop), then prove on device build with streamed request evidence.
+4. **T02/T07 + runtime readiness:** define/publish test bottle + signed manifest (resolve `aiaio-runtime` repo, signing, redistribution rights) for T02 install/update/rollback proof; collect T07 metrics with proper bench/shell tooling (adb/dumpsys/Macrobenchmark) when available.
+5. **T09/T08:** update evidence/hashes and revisit go/no-go as T03–T05/T02/T07 land; keep T08 review-ready for evidence-backed pivot if self-contained proofs fail.
 
 ## Blockers
 
