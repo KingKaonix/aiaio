@@ -523,83 +523,157 @@ private suspend fun readT03ResultFile(manager: RuntimeManager): String {
 
 
 private const val T02_FIXTURE_BASE = "http://192.168.12.227:8766"
+private const val T02_MANIFEST_URL = "$T02_FIXTURE_BASE/manifest.json"
 private const val T02_MANIFEST_PATH = "${RuntimePaths.ROOT}/probe/t02/manifest.json"
+
+private fun t02ReadResult(json: JSONObject?, key: String = "output"): String =
+    json?.optString(key).orEmpty().trim()
+
+private fun t02IsOk(json: JSONObject?): Boolean = json != null && json.optInt("code", -1) == 0
+
+private fun t02FetchManifest(url: String): String {
+    val conn = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+    conn.connectTimeout = 5000
+    conn.readTimeout = 10000
+    conn.instanceFollowRedirects = true
+    return try {
+        conn.inputStream.bufferedReader(Charsets.UTF_8).use { it.readText() }
+    } finally {
+        conn.disconnect()
+    }
+}
 
 private suspend fun runT02Probe(manager: RuntimeManager): String = buildString {
     var step = "init"
+    val failures = mutableListOf<String>()
     try {
         step = "awaitService"
-        appendLine(awaitService(manager) ?: "service: ok")
+        val svc = awaitService(manager)
+        if (svc != null) {
+            appendLine(svc)
+            appendLine("T02 fail: service unavailable")
+            return@buildString
+        }
+        appendLine("service: ok")
+
         val bridge = RuntimeFileBridge(manager)
         val base = "${RuntimePaths.ROOT}/probe/t02"
         bridge.mkdirs(base).getOrThrow()
 
-        // Signed manifest for repo-owned test bottles (T02 proof fixture).
-        val manifest = """
-{"blocked":[],"bottles":[{"archive":{"format":"tar.gz","sha256":"6f08e9ebeb6b2b91dace13fd7c89388524604712b43325f6701a929138607f30","size":221,"url":"http://192.168.12.227:8766/testnode-v1.0.0-android-arm64.tar.gz"},"capabilities":["exec","filesystem-home"],"id":"testnode","install":{"bin":["bin/node","bin/hello-pkg"],"healthCheck":{"argv":["bin/node","-v"],"expectStdout":"v1.0.0-testnode","timeoutMs":5000},"stripComponents":0},"license":"MIT","licenseNote":"Toy proof bottle owned by this repo; not real Node.js.","name":"Test Node (T02 proof bottle)","notes":"T02 proof fixture","platforms":[{"abi":"arm64-v8a","minApi":26,"os":"android"}],"redistributable":true,"sourceUrl":"https://github.com/KingKaonix/aiaio","version":"1.0.0"},{"archive":{"format":"tar.gz","sha256":"b6332fe8bb01addcf87d7bb4c1436288622705e695bd93ce44b7c9649e5f396b","size":222,"url":"http://192.168.12.227:8766/testnode-v2.0.0-android-arm64.tar.gz"},"capabilities":["exec","filesystem-home"],"id":"testnode","install":{"bin":["bin/node","bin/hello-pkg"],"healthCheck":{"argv":["bin/node","-v"],"expectStdout":"v2.0.0-testnode","timeoutMs":5000},"stripComponents":0},"license":"MIT","licenseNote":"Toy proof bottle owned by this repo; not real Node.js.","name":"Test Node (T02 proof bottle)","notes":"T02 proof fixture","platforms":[{"abi":"arm64-v8a","minApi":26,"os":"android"}],"redistributable":true,"sourceUrl":"https://github.com/KingKaonix/aiaio","version":"2.0.0"}],"generatedAt":"2026-11-13T23:30:00Z","keyId":"test-ed25519-v1","manifestVersion":1,"schemaVersion":1,"signature":{"alg":"ed25519","keyId":"test-ed25519-v1","value":"KAscfj5qYLR/dyPaKbfQXC6A8p3v6ySAm12c8M4+GRM8fNWpC5Cn9bm/oqHmE+5cG1+Yx3alI/1M06VJYP0GDQ=="}}
-""".trim()
+        step = "fetch-manifest"
+        val manifest = t02FetchManifest(T02_MANIFEST_URL).trim()
+        val manifestJson = JSONObject(manifest)
+        val sigVal = manifestJson.optJSONObject("signature")?.optString("value").orEmpty()
+        val bottles = manifestJson.optJSONArray("bottles") ?: JSONArray()
         bridge.writeAtomic(T02_MANIFEST_PATH, manifest.toByteArray(Charsets.UTF_8), 0x180).getOrThrow()
-        appendLine("manifest: written")
+        appendLine("manifest: fetched url=$T02_MANIFEST_URL keyId=${manifestJson.optString("keyId")} bottles=${bottles.length()} sig=${sigVal.take(12)}")
+        if (bottles.length() < 2 || sigVal.isBlank()) failures.add("manifest-invalid")
 
         // Negative: bad signature
         step = "bad-signature"
-        val badSig = manifest.replace("\"alg\":\"ed25519\"", "\"alg\":\"ed25519\"").replace(
-            "\"value\":\"KAscfj5qYLR/dyPaKbfQXC6A8p3v6ySAm12c8M4+GRM8fNWpC5Cn9bm/oqHmE+5cG1+Yx3alI/1M06VJYP0GDQ==\"",
-            "\"value\":\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==\""
-        )
-        val badSigRes = runCatching { JSONObject(manager.bottleInstall(badSig, "testnode", "1.0.0", "")) }.getOrNull()
-        appendLine("badSig: code=${badSigRes?.optInt("code")} err=${badSigRes?.optString("error")?.take(60)}")
+        val badSigObj = JSONObject(manifest).apply {
+            val sig = optJSONObject("signature") ?: JSONObject().also { put("signature", it) }
+            sig.put("value", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==")
+        }
+        val badSigRes = runCatching { JSONObject(manager.bottleInstall(badSigObj.toString(), "testnode", "1.0.0", "")) }.getOrNull()
+        val badSigCode = badSigRes?.optInt("code", -1) ?: -1
+        val badSigErr = badSigRes?.optString("error").orEmpty()
+        appendLine("badSig: code=$badSigCode err=${badSigErr.take(120)}")
+        if (badSigCode == 0 || !badSigErr.contains("signature", ignoreCase = true)) failures.add("badSig-accepted")
 
-        // Negative: checksum/size mismatch via wrong override archive
+        // Negative: checksum/size mismatch via wrong override archive for v1
         step = "bad-checksum"
-        // create a wrong-size archive URL by pointing to v2 file for v1 install (size/hash mismatch vs manifest v1)
-        val badSumRes = runCatching { JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-v2.0.0-android-arm64.tar.gz")) }.getOrNull()
-        appendLine("badChecksum: code=${badSumRes?.optInt("code")} err=${badSumRes?.optString("error")?.take(60)}")
+        val badSumRes = runCatching {
+            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-v2.0.0-android-arm64.tar.gz"))
+        }.getOrNull()
+        val badSumCode = badSumRes?.optInt("code", -1) ?: -1
+        val badSumErr = badSumRes?.optString("error").orEmpty()
+        appendLine("badChecksum: code=$badSumCode err=${badSumErr.take(120)}")
+        if (badSumCode == 0 || !(badSumErr.contains("sha256", true) || badSumErr.contains("size", true) || badSumErr.contains("mismatch", true))) {
+            failures.add("badChecksum-accepted")
+        }
 
-        // Interrupted download: serve a partial file (pre-created on server as testnode-partial.tar.gz)
+        // Interrupted download: serve a partial file
         step = "interrupted"
-        val interrupted = runCatching { JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-partial.tar.gz")) }.getOrNull()
+        val interrupted = runCatching {
+            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-partial.tar.gz"))
+        }.getOrNull()
         val listAfterInterrupt = runCatching { JSONObject(manager.bottleList("testnode")) }.getOrNull()
-        val curAfterInterrupt = listAfterInterrupt?.opt("current")
-        appendLine("interrupted: code=${interrupted?.optInt("code")} err=${interrupted?.optString("error")?.take(50)} current=$curAfterInterrupt")
+        val curAfterInterrupt = listAfterInterrupt?.opt("current")?.toString() ?: "null"
+        val intCode = interrupted?.optInt("code", -1) ?: -1
+        val intErr = interrupted?.optString("error").orEmpty()
+        appendLine("interrupted: code=$intCode err=${intErr.take(120)} current=$curAfterInterrupt")
+        if (intCode == 0 || (curAfterInterrupt != "null" && curAfterInterrupt.isNotBlank())) failures.add("interrupted-activated")
 
         // Install v1
         step = "install-v1"
-        val v1 = JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", ""))
-        appendLine("install-v1: code=${v1.optInt("code")} ver=${v1.optString("version")} root=${v1.optString("root").takeLast(30)}")
-        val nv1 = JSONObject(manager.bottleExec("testnode", "1.0.0", listOf("bin/node", "-v"), ""))
-        appendLine("node-v1: ${nv1.optString("output").trim()}")
-        val pkg1 = JSONObject(manager.bottleExec("testnode", "1.0.0", listOf("bin/hello-pkg"), ""))
-        appendLine("pkg-v1: ${pkg1.optString("output").trim()}")
+        val v1 = runCatching { JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "")) }.getOrNull()
+        val v1ok = t02IsOk(v1)
+        appendLine("install-v1: code=${v1?.optInt("code", -1)} ver=${v1?.optString("version")} err=${v1?.optString("error")?.take(120)} root=${v1?.optString("root")?.takeLast(36)}")
+        if (!v1ok) failures.add("install-v1")
+
+        val nv1 = runCatching { JSONObject(manager.bottleExec("testnode", "1.0.0", listOf("bin/node", "-v"), "")) }.getOrNull()
+        val nv1Out = t02ReadResult(nv1)
+        appendLine("node-v1: code=${nv1?.optInt("code", -1)} out=${nv1Out.take(80)} err=${nv1?.optString("error")?.take(80)}")
+        if (!t02IsOk(nv1) || !nv1Out.contains("v1.0.0-testnode")) failures.add("node-v1")
+
+        val pkg1 = runCatching { JSONObject(manager.bottleExec("testnode", "1.0.0", listOf("bin/hello-pkg"), "")) }.getOrNull()
+        val pkg1Out = t02ReadResult(pkg1)
+        appendLine("pkg-v1: code=${pkg1?.optInt("code", -1)} out=${pkg1Out.take(80)} err=${pkg1?.optString("error")?.take(80)}")
+        if (!t02IsOk(pkg1) || pkg1Out.isBlank()) failures.add("pkg-v1")
 
         // Install v2 (update) -> becomes current
         step = "install-v2"
-        val v2 = JSONObject(manager.bottleInstall(manifest, "testnode", "2.0.0", ""))
-        appendLine("install-v2: code=${v2.optInt("code")} ver=${v2.optString("version")}")
-        val nv2 = JSONObject(manager.bottleExec("testnode", "", listOf("bin/node", "-v"), ""))
-        appendLine("node-current-after-v2: ${nv2.optString("output").trim()}")
-        val listAfterV2 = JSONObject(manager.bottleList("testnode"))
-        appendLine("list-after-v2: versions=${listAfterV2.optJSONArray("versions")?.length()}")
+        val v2 = runCatching { JSONObject(manager.bottleInstall(manifest, "testnode", "2.0.0", "")) }.getOrNull()
+        appendLine("install-v2: code=${v2?.optInt("code", -1)} ver=${v2?.optString("version")} err=${v2?.optString("error")?.take(120)}")
+        if (!t02IsOk(v2)) failures.add("install-v2")
+
+        val nv2 = runCatching { JSONObject(manager.bottleExec("testnode", "", listOf("bin/node", "-v"), "")) }.getOrNull()
+        val nv2Out = t02ReadResult(nv2)
+        appendLine("node-current-after-v2: code=${nv2?.optInt("code", -1)} out=${nv2Out.take(80)} err=${nv2?.optString("error")?.take(80)}")
+        if (!t02IsOk(nv2) || !nv2Out.contains("v2.0.0-testnode")) failures.add("node-v2-current")
+
+        val listAfterV2 = runCatching { JSONObject(manager.bottleList("testnode")) }.getOrNull()
+        val v2Count = listAfterV2?.optJSONArray("versions")?.length() ?: -1
+        appendLine("list-after-v2: versions=$v2Count current=${listAfterV2?.opt("current")}")
+        if (v2Count < 2) failures.add("list-v2")
 
         // Rollback to v1
         step = "rollback-v1"
-        val rb = JSONObject(manager.bottleActivate("testnode", "1.0.0"))
-        appendLine("rollback: code=${rb.optInt("code")}")
-        val nvRb = JSONObject(manager.bottleExec("testnode", "", listOf("bin/node", "-v"), ""))
-        appendLine("node-current-after-rollback: ${nvRb.optString("output").trim()}")
+        val rb = runCatching { JSONObject(manager.bottleActivate("testnode", "1.0.0")) }.getOrNull()
+        appendLine("rollback: code=${rb?.optInt("code", -1)} err=${rb?.optString("error")?.take(120)}")
+        if (!t02IsOk(rb)) failures.add("rollback")
+
+        val nvRb = runCatching { JSONObject(manager.bottleExec("testnode", "", listOf("bin/node", "-v"), "")) }.getOrNull()
+        val nvRbOut = t02ReadResult(nvRb)
+        appendLine("node-current-after-rollback: code=${nvRb?.optInt("code", -1)} out=${nvRbOut.take(80)} err=${nvRb?.optString("error")?.take(80)}")
+        if (!t02IsOk(nvRb) || !nvRbOut.contains("v1.0.0-testnode")) failures.add("rollback-current")
 
         // GC stale/non-current (remove v2 while v1 active)
         step = "gc-v2"
-        val rm = JSONObject(manager.bottleRemove("testnode", "2.0.0"))
-        appendLine("remove-v2: code=${rm.optInt("code")}")
-        val listAfterGc = JSONObject(manager.bottleList("testnode"))
-        appendLine("list-after-gc: versions=${listAfterGc.optJSONArray("versions")?.length()}")
+        val rm = runCatching { JSONObject(manager.bottleRemove("testnode", "2.0.0")) }.getOrNull()
+        appendLine("remove-v2: code=${rm?.optInt("code", -1)} err=${rm?.optString("error")?.take(120)}")
+        if (!t02IsOk(rm)) failures.add("gc-remove-v2")
+
+        val listAfterGc = runCatching { JSONObject(manager.bottleList("testnode")) }.getOrNull()
+        val gcCount = listAfterGc?.optJSONArray("versions")?.length() ?: -1
+        appendLine("list-after-gc: versions=$gcCount current=${listAfterGc?.opt("current")}")
+        if (gcCount != 1) failures.add("gc-count")
 
         // metadata/manifest fields check summary
-        appendLine("manifest-fields: license+sourceUrl+redistributable present in fixture")
-        appendLine("T02 ok (proof fixtures; production runtime repo/signing TBD)")
+        val b0 = bottles.optJSONObject(0)
+        val fieldsOk = b0 != null && b0.has("license") && b0.has("sourceUrl") && b0.has("redistributable")
+        appendLine("manifest-fields: license+sourceUrl+redistributable present=$fieldsOk (fixture)")
+        if (!fieldsOk) failures.add("manifest-fields")
+
+        if (failures.isEmpty()) {
+            appendLine("T02 ok (proof fixtures; production runtime/signing external)")
+        } else {
+            appendLine("T02 fail[checks]: ${failures.joinToString(",")}")
+        }
     } catch (t: Throwable) {
-        appendLine("T02 fail[$step]: ${t.javaClass.simpleName}:${t.message?.take(140)}")
+        appendLine("T02 fail[$step]: ${t.javaClass.simpleName}:${t.message?.take(180)}")
+        if (failures.isNotEmpty()) appendLine("T02 fail[checks]: ${failures.joinToString(",")}")
     }
 }.also { result ->
     runCatching {
