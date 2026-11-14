@@ -523,8 +523,10 @@ private suspend fun readT03ResultFile(manager: RuntimeManager): String {
 
 
 
-private const val T02_FIXTURE_BASE = "http://192.168.12.227:8766"
-private const val T02_MANIFEST_URL = "$T02_FIXTURE_BASE/manifest.json"
+private val T02_FIXTURE_BASES = listOf(
+    "http://127.0.0.1:8766",       // adb reverse tcp:8766 tcp:8766
+    "http://192.168.12.227:8766",  // LAN host
+)
 private const val T02_MANIFEST_PATH = "${RuntimePaths.ROOT}/probe/t02/manifest.json"
 
 private fun t02ReadResult(json: JSONObject?, key: String = "output"): String =
@@ -558,16 +560,29 @@ private suspend fun runT02Probe(manager: RuntimeManager): String = buildString {
         appendLine("service: ok")
 
         val bridge = RuntimeFileBridge(manager)
-        val base = "${RuntimePaths.ROOT}/probe/t02"
-        bridge.mkdirs(base).getOrThrow()
+        val probeDir = "${RuntimePaths.ROOT}/probe/t02"
+        bridge.mkdirs(probeDir).getOrThrow()
 
         step = "fetch-manifest"
-        val manifest = t02FetchManifest(T02_MANIFEST_URL).trim()
+        var fixtureBase = T02_FIXTURE_BASES.first()
+        var manifest = ""
+        var lastErr: Throwable? = null
+        for (candidate in T02_FIXTURE_BASES) {
+            try {
+                manifest = t02FetchManifest("$candidate/manifest.json").trim()
+                fixtureBase = candidate
+                lastErr = null
+                break
+            } catch (t: Throwable) {
+                lastErr = t
+            }
+        }
+        if (lastErr != null) throw lastErr!!
         val manifestJson = JSONObject(manifest)
         val sigVal = manifestJson.optJSONObject("signature")?.optString("value").orEmpty()
         val bottles = manifestJson.optJSONArray("bottles") ?: JSONArray()
         bridge.writeAtomic(T02_MANIFEST_PATH, manifest.toByteArray(Charsets.UTF_8), 0x180).getOrThrow()
-        appendLine("manifest: fetched url=$T02_MANIFEST_URL keyId=${manifestJson.optString("keyId")} bottles=${bottles.length()} sig=${sigVal.take(12)}")
+        appendLine("manifest: fetched base=$fixtureBase keyId=${manifestJson.optString("keyId")} bottles=${bottles.length()} sig=${sigVal.take(12)}")
         if (bottles.length() < 2 || sigVal.isBlank()) failures.add("manifest-invalid")
 
         // Negative: bad signature
@@ -585,7 +600,7 @@ private suspend fun runT02Probe(manager: RuntimeManager): String = buildString {
         // Negative: checksum/size mismatch via wrong override archive for v1
         step = "bad-checksum"
         val badSumRes = runCatching {
-            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-v2.0.0-android-arm64.tar.gz"))
+            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$fixtureBase/testnode-v2.0.0-android-arm64.tar.gz"))
         }.getOrNull()
         val badSumCode = badSumRes?.optInt("code", -1) ?: -1
         val badSumErr = badSumRes?.optString("error").orEmpty()
@@ -597,7 +612,7 @@ private suspend fun runT02Probe(manager: RuntimeManager): String = buildString {
         // Interrupted download: serve a partial file
         step = "interrupted"
         val interrupted = runCatching {
-            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$T02_FIXTURE_BASE/testnode-partial.tar.gz"))
+            JSONObject(manager.bottleInstall(manifest, "testnode", "1.0.0", "$fixtureBase/testnode-partial.tar.gz"))
         }.getOrNull()
         val listAfterInterrupt = runCatching { JSONObject(manager.bottleList("testnode")) }.getOrNull()
         val curAfterInterrupt = listAfterInterrupt?.opt("current")?.toString() ?: "null"
